@@ -1,0 +1,18 @@
+# TODO: adjust the IP range to your reserved block
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: platform-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.20.2.1-10.20.2.254
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: platform-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - platform-pool

@@ -1,0 +1,32 @@
+suite: metallb ip pool
+templates:
+  - templates/ip-pool.yaml
+tests:
+  - it: creates platform ip pool
+    documentSelector:
+      path: kind
+      value: IPAddressPool
+    asserts:
+      - equal:
+          path: metadata.name
+          value: platform-pool
+      - equal:
+          path: metadata.namespace
+          value: metallb-system
+      - equal:
+          path: spec.addresses[0]
+          value: 10.20.2.1-10.20.2.254
+  - it: creates platform l2 advertisement
+    documentSelector:
+      path: kind
+      value: L2Advertisement
+    asserts:
+      - equal:
+          path: metadata.name
+          value: platform-l2
+      - equal:
+          path: metadata.namespace
+          value: metallb-system
+      - equal:
+          path: spec.ipAddressPools[0]
+          value: platform-pool

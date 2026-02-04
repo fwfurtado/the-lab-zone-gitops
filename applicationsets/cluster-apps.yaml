@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - matrix:
+        generators:
+          # Generator 1: every cluster with the managed label
+          - clusters:
+              selector:
+                matchLabels:
+                  lab.the-lab.zone/managed: "true"
+          # Generator 2: every subdirectory under clusters/<cluster-name>/
+          - git:
+              repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
+              revision: main
+              directories:
+                - path: "clusters/{{.name}}/*"
+  template:
+    metadata:
+      name: "{{.name}}-{{.path.basename}}"
+      labels:
+        lab.the-lab.zone/cluster: "{{.name}}"
+        lab.the-lab.zone/component: "{{.path.basename}}"
+    spec:
+      project: "{{.metadata.labels.project}}"
+      source:
+        repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
+        targetRevision: main
+        path: "{{.path.path}}"
+      destination:
+        server: "{{.server}}"
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

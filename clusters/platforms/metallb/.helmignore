@@ -1,0 +1,3 @@
+# Helm unit tests
+tests/
+**/__snapshot__/**
