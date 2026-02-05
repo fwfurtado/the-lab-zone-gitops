@@ -1,0 +1,53 @@
+# Verifica conformidade com .editorconfig nos arquivos alterados (push/PR)
+# Para checar o repositório inteiro, use: run: editorconfig-checker
+name: EditorConfig
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  editorconfig:
+    name: EditorConfig check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up editorconfig-checker
+        uses: editorconfig-checker/action-editorconfig-checker@main
+
+      - name: Get changed files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            # first push (e.g. new branch): before is 0{40}
+            if [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+              BASE="HEAD~1"
+            fi
+          fi
+          FILES=$(git diff --name-only --diff-filter=d $BASE HEAD 2>/dev/null || git diff --name-only --diff-filter=d origin/main HEAD 2>/dev/null || echo "")
+          # Remove empty lines and escape for multiline output
+          FILES=$(echo "$FILES" | sed '/^$/d')
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run editorconfig-checker (changed files)
+        run: |
+          FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$FILES" ]; then
+            echo "No tracked files changed, skipping."
+            exit 0
+          fi
+          # Filter to existing files and run checker
+          echo "$FILES" | while IFS= read -r f; do
+            [ -n "$f" ] && [ -f "$f" ] && echo "$f"
+          done | xargs -r editorconfig-checker
