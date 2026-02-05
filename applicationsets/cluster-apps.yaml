@@ -26,7 +26,7 @@ spec:
         lab.the-lab.zone/cluster: "{{.name}}"
         lab.the-lab.zone/component: "{{.path.basename}}"
     spec:
-      project: "{{.metadata.labels.project}}"
+      project: "default"
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main

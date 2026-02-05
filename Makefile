@@ -11,6 +11,8 @@ KUBECONFORM_SCHEMA_LOCATIONS ?= -schema-location default \
 
 CHART_DIRS := $(sort $(dir $(wildcard clusters/*/*/Chart.yaml)))
 
+include makefiles/argo.mk
+
 .PHONY: template validate clean
 
 template:
