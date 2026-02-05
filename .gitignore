@@ -6,3 +6,6 @@
 **/charts/*.tgz
 
 # End of https://www.toptal.com/developers/gitignore/api/helm
+
+# Filled Argo CD repo secret (never commit)
+bootstrap/repo-secret.yaml
