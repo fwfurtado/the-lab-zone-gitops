@@ -13,8 +13,9 @@ CHART_DIRS := $(sort $(dir $(wildcard clusters/*/*/Chart.yaml)))
 
 include makefiles/argo.mk
 include makefiles/bootstrap.mk
+include makefiles/yamllint.mk
 
-.PHONY: template validate clean
+.PHONY: template validate clean yamllint
 
 template:
 	@set -euo pipefail; \

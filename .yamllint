@@ -1,0 +1,14 @@
+# yamllint config for the-lab-zone-gitops
+# https://yamllint.readthedocs.io/en/stable/configuration.html
+extends: default
+
+rules:
+  line-length:
+    max: 200
+    level: warning
+  document-start: disable
+  truthy: disable  # GitHub Actions and K8s use unquoted values (e.g. branches: [main])
+  comments:
+    min-spaces-from-content: 1
+  indentation:
+    indent-sequences: consistent
