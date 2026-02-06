@@ -28,7 +28,7 @@ spec:
       annotations:
         argocd.argoproj.io/sync-wave: "{{.app.syncWave}}"
     spec:
-      project: "{{.metadata.labels.project}}"
+      project: "{{ default \"default\" .app.project }}"
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
