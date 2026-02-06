@@ -32,7 +32,7 @@ spec:
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
-        path: "{{.path.path | dir}}"
+        path: "{{.path.path}}"
       destination:
         server: "{{.server}}"
         namespace: "{{.app.namespace}}"
