@@ -30,15 +30,16 @@ spec:
     spec:
       project: "{{ default \"default\" .app.project }}"
       ignoreDifferences:
-        # Global: ExternalSecret status is updated by ESO; avoid perpetual out-of-sync
+        # ExternalSecret status is updated by ESO; avoid perpetual out-of-sync
         - group: external-secrets.io
           kind: ExternalSecret
           jsonPointers:
             - /status
-        {{- if and .app.ignoreDifferences (gt (len .app.ignoreDifferences) 0) }}
-        # Per-app overrides from app.yaml (app.ignoreDifferences)
-        {{ toYaml .app.ignoreDifferences | nindent 8 }}
-        {{- end }}
+        # StatefulSet volumeClaimTemplates get status.phase from the API; not in Git
+        - group: apps
+          kind: StatefulSet
+          jqPathExpressions:
+            - .spec.volumeClaimTemplates[].status
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
