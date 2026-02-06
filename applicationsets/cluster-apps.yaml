@@ -33,6 +33,8 @@ spec:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
         path: "{{.path.path}}"
+        helm:
+          releaseName: "{{ default .app.name .app.releaseName }}"
       destination:
         server: "{{.server}}"
         namespace: "{{.app.namespace}}"
