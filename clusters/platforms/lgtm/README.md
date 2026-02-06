@@ -34,3 +34,15 @@ kubectl rollout restart deployment -n monitoring lgtm-minio
 ```
 
 Aguarde o pod ficar Ready e os outros pods (Mimir, Loki, Tempo) devem conseguir conectar ao object storage.
+
+**Se os buckets ainda não existirem**, crie-os à mão dentro do pod do MinIO (a imagem já traz o cliente `mc`):
+
+```bash
+# Entrar no pod do MinIO e criar os buckets (credenciais vêm do secret "minio")
+kubectl exec -it deployment/lgtm-minio -n monitoring -- bash -c '
+  mc alias set myminio http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+  for b in loki-chunks loki-ruler tempo mimir-ruler mimir-tsdb; do mc mb myminio/$b --ignore-existing 2>/dev/null || true; done
+'
+```
+
+Depois disso, os pods do Mimir (e dos outros) devem conseguir conectar ao object storage.

@@ -35,6 +35,13 @@ meta-monitoring:
     ingress:
       enabled: false  # We use Traefik IngressRoute instead
 
+  # Disable ruler-for-dashboards deployment: chart names it {{ Release.Namespace }}-mimir-*
+  # but ConfigMaps are {{ Release.Name }}-mimir-*, so the pod would fail (Missing config).
+  # Setting this to false removes that deployment and keeps Argo in sync.
+  dashboards:
+    logs:
+      enabled: false
+
   # Use democratic-csi StorageClass (truenas-nfs) so PVCs bind.
   # Buckets must exist for Loki, Mimir and Tempo; list is explicit so they are always created.
   minio:
