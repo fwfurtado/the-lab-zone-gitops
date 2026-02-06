@@ -36,5 +36,3 @@ cilium:
       enabled: true
     ui:
       enabled: true
-      service:
-        type: LoadBalancer

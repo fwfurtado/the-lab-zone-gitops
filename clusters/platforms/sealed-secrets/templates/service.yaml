@@ -14,4 +14,4 @@ spec:
       protocol: TCP
   selector:
     app.kubernetes.io/name: sealed-secrets-ui
-  type: LoadBalancer
+  type: ClusterIP
