@@ -1,1 +1,4 @@
-argo-cd: {}
+argo-cd:
+  configs:
+    params:
+      server.insecure: true
