@@ -2,4 +2,3 @@ app:
   name: lgtm
   namespace: monitoring
   syncWave: "5"
-

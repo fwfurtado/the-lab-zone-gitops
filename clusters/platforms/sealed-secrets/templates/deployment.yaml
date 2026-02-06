@@ -27,7 +27,7 @@ spec:
             - containerPort: 8080
           env:
             - name: SEALED_SECRETS_CONTROLLER_NAMESPACE
-              value: sealed-secrets 
+              value: sealed-secrets
             - name: SECRET_NAMESPACE
               value: sealed-secrets
           resources:
