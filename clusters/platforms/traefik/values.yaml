@@ -20,9 +20,6 @@ traefik:
       port: 8443
       exposedPort: 443
       protocol: TCP
-      # No TLS here - passthrough from LXC or terminate there
-      tls:
-        enabled: false
 
   # Enable Traefik dashboard (exposed via IngressRoute below)
   ingressRoute:
@@ -44,10 +41,6 @@ traefik:
       level: INFO
     access:
       enabled: true
-
-  # Disable pilot/telemetry
-  pilot:
-    enabled: false
 
   # Resources
   resources:
