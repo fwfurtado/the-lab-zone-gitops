@@ -18,7 +18,7 @@ spec:
         app.kubernetes.io/instance: sealed-secrets-ui
         app.kubernetes.io/name: sealed-secrets-ui
     spec:
-      serviceAccountName: sealed-secrets-controller
+      serviceAccountName: sealed-secrets
       containers:
         - name: sealed-secrets-ui
           image: alpheya/sealed-secrets-ui:0.3.3
