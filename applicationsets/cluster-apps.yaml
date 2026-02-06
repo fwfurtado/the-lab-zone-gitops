@@ -35,10 +35,10 @@ spec:
           kind: ExternalSecret
           jsonPointers:
             - /status
-        {{- if .app.ignoreDifferences }}
-        # Per-app overrides from app.yaml (app.ignoreDifferences)
-        {{ toYaml .app.ignoreDifferences | nindent 8 }}
-        {{- end }}
+        - group: apps
+          kind: StatefulSet
+          jqPathExpressions:
+            - .spec.volumeClaimTemplates[].status
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
