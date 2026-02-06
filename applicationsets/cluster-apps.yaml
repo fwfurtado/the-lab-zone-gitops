@@ -29,13 +29,6 @@ spec:
         argocd.argoproj.io/sync-wave: "{{.app.syncWave}}"
     spec:
       project: "{{ default \"default\" .app.project }}"
-      {{- if eq .app.name "lgtm" }}
-      resourceExclusions:
-        - apiVersion: v1
-          kind: PersistentVolumeClaim
-          name: grafana-pvc
-          namespace: "{{ .app.namespace }}"
-      {{- end }}
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
