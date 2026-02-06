@@ -2,3 +2,9 @@ app:
   name: lgtm
   namespace: monitoring
   syncWave: "5"
+  # Argo CD: ignore runtime-only fields so this app stays Synced
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates[].status

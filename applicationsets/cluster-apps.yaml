@@ -30,11 +30,15 @@ spec:
     spec:
       project: "{{ default \"default\" .app.project }}"
       ignoreDifferences:
-        # ExternalSecret status is updated by ESO; avoid perpetual out-of-sync
+        # Global: ExternalSecret status is updated by ESO; avoid perpetual out-of-sync
         - group: external-secrets.io
           kind: ExternalSecret
           jsonPointers:
             - /status
+        {{- if .app.ignoreDifferences }}
+        # Per-app overrides from app.yaml (app.ignoreDifferences)
+        {{ toYaml .app.ignoreDifferences | nindent 8 }}
+        {{- end }}
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
