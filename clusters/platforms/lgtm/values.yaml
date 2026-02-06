@@ -35,10 +35,27 @@ meta-monitoring:
     ingress:
       enabled: false  # We use Traefik IngressRoute instead
 
-  # Use democratic-csi StorageClass (truenas-nfs) so PVCs bind
+  # Use democratic-csi StorageClass (truenas-nfs) so PVCs bind.
+  # Buckets must exist for Loki, Mimir and Tempo; list is explicit so they are always created.
   minio:
     persistence:
       storageClassName: truenas-nfs
+    buckets:
+      - name: loki-chunks
+        policy: none
+        purge: false
+      - name: loki-ruler
+        policy: none
+        purge: false
+      - name: tempo
+        policy: none
+        purge: false
+      - name: mimir-ruler
+        policy: none
+        purge: false
+      - name: mimir-tsdb
+        policy: none
+        purge: false
   mimir-distributed:
     minio:
       persistence:
