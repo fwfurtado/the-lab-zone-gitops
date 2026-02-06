@@ -1,0 +1,59 @@
+traefik:
+  # Single replica is fine for homelab
+  deployment:
+    replicas: 1
+
+  # Fixed IP from MetalLB pool - this is what Traefik LXC will point to
+  service:
+    type: LoadBalancer
+    annotations:
+      metallb.universe.tf/loadBalancerIPs: "10.40.2.1"
+
+  # Entrypoints - only HTTP since TLS terminates at Traefik LXC
+  ports:
+    web:
+      port: 8000
+      exposedPort: 80
+      protocol: TCP
+    # Disable HTTPS - TLS is handled by Traefik LXC
+    websecure:
+      port: 8443
+      exposedPort: 443
+      protocol: TCP
+      # No TLS here - passthrough from LXC or terminate there
+      tls:
+        enabled: false
+
+  # Enable Traefik dashboard (exposed via IngressRoute below)
+  ingressRoute:
+    dashboard:
+      enabled: false  # We'll create our own IngressRoute
+
+  # Providers
+  providers:
+    kubernetesCRD:
+      enabled: true
+      allowCrossNamespace: true
+    kubernetesIngress:
+      enabled: true
+      allowEmptyServices: true
+
+  # Logs
+  logs:
+    general:
+      level: INFO
+    access:
+      enabled: true
+
+  # Disable pilot/telemetry
+  pilot:
+    enabled: false
+
+  # Resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
