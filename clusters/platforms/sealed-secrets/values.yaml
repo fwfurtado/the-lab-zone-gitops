@@ -1,6 +1,1 @@
-sealed-secrets:
-  service:
-    type: LoadBalancer
-  metrics:
-    service:
-      type: LoadBalancer
+sealed-secrets: {}
