@@ -34,3 +34,20 @@ meta-monitoring:
   grafana:
     ingress:
       enabled: false  # We use Traefik IngressRoute instead
+
+  # Use democratic-csi StorageClass (truenas-nfs) so PVCs bind
+  minio:
+    persistence:
+      storageClassName: truenas-nfs
+  mimir-distributed:
+    minio:
+      persistence:
+        storageClassName: truenas-nfs
+  tempo-distributed:
+    minio:
+      persistence:
+        storageClassName: truenas-nfs
+  loki:
+    minio:
+      persistence:
+        storageClassName: truenas-nfs
