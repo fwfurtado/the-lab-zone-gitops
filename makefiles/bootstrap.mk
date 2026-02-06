@@ -10,7 +10,7 @@ bootstrap: bootstrap-secrets bootstrap-app
 # Ajuste o path op:// no arquivo bootstrap/repo-secret.yaml.injectable para o seu item no 1Password.
 bootstrap-secrets:
 	@op inject -i bootstrap/repo-secret.tpl.yaml | $(KUBECTL) apply -f -
-	@op inject -i bootstrap/onepassword-secret.tpl.yaml | $(KUBECTL) apply -f -
+#	@op inject -i bootstrap/onepassword-secret.tpl.yaml | $(KUBECTL) apply -f -
 
 # Aplica apenas a Application bootstrap (root.yaml).
 bootstrap-app:

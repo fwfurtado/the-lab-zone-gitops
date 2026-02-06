@@ -1,0 +1,4 @@
+app:
+  name: cilium
+  namespace: kube-system
+  syncWave: "0"

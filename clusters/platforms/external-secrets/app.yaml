@@ -1,0 +1,4 @@
+app:
+  name: external-secrets
+  namespace: external-secrets
+  syncWave: "2"

@@ -17,22 +17,25 @@ spec:
           - git:
               repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
               revision: main
-              directories:
-                - path: "clusters/{{.name}}/*"
+              files:
+                - path: "clusters/{{.name}}/**/app.yaml"
   template:
     metadata:
-      name: "{{.name}}-{{.path.basename}}"
+      name: "{{.name}}-{{.app.name}}"
       labels:
         lab.the-lab.zone/cluster: "{{.name}}"
-        lab.the-lab.zone/component: "{{.path.basename}}"
+        lab.the-lab.zone/component: "{{.app.name}}"
+      annotations:
+        argocd.argoproj.io/sync-wave: "{{.app.syncWave}}"
     spec:
-      project: "default"
+      project: "{{.metadata.labels.project}}"
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
-        path: "{{.path.path}}"
+        path: "{{.path.path | dir}}"
       destination:
         server: "{{.server}}"
+        namespace: "{{.app.namespace}}"
       syncPolicy:
         automated:
           selfHeal: true
