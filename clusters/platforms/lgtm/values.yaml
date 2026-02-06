@@ -1,0 +1,36 @@
+meta-monitoring:
+  # Namespaces to monitor
+  namespacesToMonitor:
+    - monitoring
+    - argocd
+    - traefik
+    - kube-system
+
+  clusterLabelValue: "platform"
+
+  # Disable cloud mode - running everything locally
+  cloud:
+    logs:
+      enabled: false
+    metrics:
+      enabled: false
+    traces:
+      enabled: false
+
+  # Enable local mode
+  local:
+    grafana:
+      enabled: true
+    logs:
+      enabled: true
+    metrics:
+      enabled: true
+    traces:
+      enabled: true
+    minio:
+      enabled: true
+
+  # Grafana configuration (meta-monitoring deploys its own Grafana, not a subchart)
+  grafana:
+    ingress:
+      enabled: false  # We use Traefik IngressRoute instead
