@@ -29,6 +29,12 @@ spec:
         argocd.argoproj.io/sync-wave: "{{.app.syncWave}}"
     spec:
       project: "{{ default \"default\" .app.project }}"
+      ignoreDifferences:
+        # ExternalSecret status is updated by ESO; avoid perpetual out-of-sync
+        - group: external-secrets.io
+          kind: ExternalSecret
+          jsonPointers:
+            - /status
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
