@@ -11,30 +11,10 @@ democratic-csi:
       parameters:
         fsType: nfs
 
+  # Full driver config (host, apiKey, zfs, nfs) comes from Secret "truenas-driver-config",
+  # synced by ESO from 1Password (see templates/truenas-driver-config-external-secret.yaml).
+  # Chart requires driver.config.driver to be set when using existingConfigSecret.
   driver:
+    existingConfigSecret: truenas-driver-config
     config:
       driver: freenas-api-nfs
-
-      httpConnection:
-        protocol: https
-        # TODO: replace with your TrueNAS IP
-        host: 192.168.40.4
-        port: 443
-        allowInsecure: true
-        # TODO: inject via ESO ExternalSecret
-        apiKey:
-
-      zfs:
-        datasetParentName: main/k8s/platform/volumes
-        detachedSnapshotsDatasetParentName: main/k8s/platform/snapshots
-        datasetProperties:
-          org.freenas:description: "{{ parameters.[csi.storage.k8s.io/pvc/namespace] }}/{{ parameters.[csi.storage.k8s.io/pvc/name] }}"
-
-      nfs:
-        shareHost: 192.168.40.4
-        shareAlldirs: false
-        shareAllowedHosts: []
-        shareAllowedNetworks:
-          - 192.168.40.0/24
-        shareMaprootUser: root
-        shareMaprootGroup: root
