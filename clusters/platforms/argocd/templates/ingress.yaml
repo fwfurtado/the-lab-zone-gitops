@@ -7,7 +7,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`argocd.platforms.the-lab.zone`)
+    - match: Host(`argocd.platform.the-lab.zone`)
       kind: Rule
       services:
         - name: argocd-server
