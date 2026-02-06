@@ -35,11 +35,13 @@ spec:
           kind: ExternalSecret
           jsonPointers:
             - /status
-        # StatefulSet volumeClaimTemplates get status.phase from the API; not in Git
+        # StatefulSet volumeClaimTemplates: API adds status, apiVersion, kind; Helm omits them
         - group: apps
           kind: StatefulSet
           jqPathExpressions:
             - .spec.volumeClaimTemplates[].status
+            - .spec.volumeClaimTemplates[].apiVersion
+            - .spec.volumeClaimTemplates[].kind
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main
