@@ -14,7 +14,9 @@ garage:
     data:
       storageClass: "truenas-nfs"
       size: 50Gi
-
+  monitoring:
+    metrics:
+      enabled: true
 app:
   namespace: garage
 # Garage WebUI configuration
