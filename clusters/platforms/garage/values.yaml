@@ -1,6 +1,6 @@
 garage:
   garage:
-    blockSize: "100Mib"
+    blockSize: "104857600"
 
   # Start 4 instances (StatefulSets) of garage
   deployment:
