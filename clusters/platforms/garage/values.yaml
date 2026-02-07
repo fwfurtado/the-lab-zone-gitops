@@ -148,7 +148,7 @@ affinity: {}
 garageConfig:
   s3Endpoint: "http://garage:3900"
   region: "garage"
-  adminApiUrl: "http://garage:3903"
+  adminApiUrl: "http://garage-metrics:3903"
   # Admin API key - set this value or use a secret via External Secrets
   # You can also override this via helm values
   adminApiKey: ""
