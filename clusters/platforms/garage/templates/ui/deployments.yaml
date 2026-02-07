@@ -70,7 +70,10 @@ spec:
             - name: AUTH_USER_PASS
               value: {{ .Values.auth.userPassHash | quote }}
             - name: API_ADMIN_KEY
-              value: {{ .Values.garageConfig.adminApiKey | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.adminTokenSecretName }}
+                  key: adminToken
           livenessProbe:
             httpGet:
               path: /
