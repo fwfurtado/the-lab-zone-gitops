@@ -1,0 +1,16 @@
+garage:
+  garage:
+    blockSize: "100Mib"
+
+  # Start 4 instances (StatefulSets) of garage
+  deployment:
+    replicaCount: 4
+
+  # Override default storage class and size
+  persistence:
+    meta:
+      storageClass: "truenas-nfs"
+      size: 2Gi
+    data:
+      storageClass: "truenas-nfs"
+      size: 50Gi
