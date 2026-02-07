@@ -1,0 +1,10 @@
+---
+# prometheus-node-exporter needs hostPath, hostNetwork, hostPID, hostPort; namespace must allow it.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
