@@ -163,6 +163,8 @@ config:
   name: garage-config
   # RPC secret name from the Garage deployment
   rpcSecretName: garage-rpc-secret
+  # Admin token secret name from the ExternalSecret
+  adminTokenSecretName: garage-admin-token
 
 # Init container image configuration
 # Used to process garage.toml and replace RPC secret placeholder
