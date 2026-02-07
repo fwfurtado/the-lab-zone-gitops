@@ -2,3 +2,4 @@ app:
   name: victoria-stack
   namespace: monitoring
   syncWave: "2"
+  releaseName: vms
