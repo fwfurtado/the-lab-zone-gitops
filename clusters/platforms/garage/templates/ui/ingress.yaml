@@ -1,0 +1,30 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "garage-webui.fullname" . }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    {{- include "garage-webui.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  entryPoints:
+    {{- range .Values.ingress.entryPoints }}
+    - {{ . | quote }}
+    {{- end }}
+  routes:
+    {{- range .Values.ingress.hosts }}
+    - match: Host(`{{ .host }}`)
+      kind: Rule
+      services:
+        - name: {{ include "garage-webui.fullname" $ }}
+          port: {{ $.Values.service.port }}
+    {{- end }}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

@@ -14,3 +14,150 @@ garage:
     data:
       storageClass: "truenas-nfs"
       size: 50Gi
+
+app:
+  namespace: garage
+# Garage WebUI configuration
+# Based on the official Helm chart structure from PR #46
+
+# Replica count for the WebUI deployment
+replicaCount: 1
+
+# Container image configuration
+image:
+  repository: khairul169/garage-webui
+  pullPolicy: IfNotPresent
+  tag: "1.1.0"  # Use specific version or "latest"
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Override chart name
+nameOverride: "garage-webui"
+fullnameOverride: "garage-webui"
+
+# Service account configuration
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod labels
+podLabels: {}
+
+# Pod security context
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# Container security context
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# Service configuration
+service:
+  type: ClusterIP
+  name: garage-webui
+  port: 80
+  targetPort: 3909
+
+# Ingress configuration (optional)
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # EntryPoints for Traefik IngressRoute
+  entryPoints:
+    - web
+  hosts:
+    - host: garage.platform.the-lab.zone
+  tls: []
+    # - secretName: garage-webui-tls
+    #   hosts:
+    #     - garage.platform.the-lab.zone
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Liveness probe configuration
+livenessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 30
+
+# Readiness probe configuration
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+# Autoscaling configuration (optional)
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the Deployment
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the Deployment
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity rules
+affinity: {}
+
+# Garage configuration
+# These should point to your Garage service
+# Service name is "garage" in the same namespace
+garageConfig:
+  s3Endpoint: "http://garage:3900"
+  region: "garage"
+  adminApiUrl: "http://garage:3903"
+  # Admin API key - set this value or use a secret via External Secrets
+  # You can also override this via helm values
+  adminApiKey: ""
+
+# Authentication configuration (optional)
+# Generate hash using: htpasswd -nbBC 10 "admin" "yourpassword"
+auth:
+  userPassHash: ""
+
+# ConfigMap configuration for garage.toml (optional)
+# If enabled, mount a ConfigMap containing garage.toml
+config:
+  enabled: true
+  name: garage-config
