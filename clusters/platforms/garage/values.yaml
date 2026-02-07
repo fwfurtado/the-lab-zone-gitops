@@ -161,3 +161,17 @@ auth:
 config:
   enabled: true
   name: garage-config
+  # RPC secret name from the Garage deployment
+  rpcSecretName: garage-rpc-secret
+
+# Init container image configuration
+# Used to process garage.toml and replace RPC secret placeholder
+initImage:
+  repository: busybox
+  tag: "stable"
+  pullPolicy: IfNotPresent
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
