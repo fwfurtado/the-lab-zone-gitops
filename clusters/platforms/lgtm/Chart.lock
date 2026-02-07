@@ -1,6 +1,0 @@
-dependencies:
-- name: meta-monitoring
-  repository: https://grafana.github.io/helm-charts
-  version: 1.3.0
-digest: sha256:c3054448fb1a68a32d14cbc25f2dbaa5dc38c785137c018bebf292e899b1c9e5
-generated: "2026-02-06T10:10:58.477311078-03:00"
