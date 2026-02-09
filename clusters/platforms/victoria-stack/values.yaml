@@ -2,6 +2,8 @@ metrics:
   grafana:
     persistence:
       enabled: true
+    plugins:
+      - victoriametrics-logs-datasource
   vmsingle:
     spec:
       retentionPeriod: 30d
