@@ -1,0 +1,45 @@
+metrics:
+  grafana:
+    enabled: false
+  vmsingle:
+    spec:
+      retentionPeriod: 30d
+      extraArgs:
+        retention.maxDiskUsagePercent: "80"
+      resources:
+        requests:
+          storage: 20Gi
+
+logs:
+  dashboards:
+    enabled: true
+  server:
+    retentionPeriod: 30d
+    extraArgs:
+      retention.maxDiskUsagePercent: "80"
+    persistentVolume:
+      size: 20Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+log-collectors:
+  remoteWrite:
+    - url: http://victoria-logs-server:9428
+  collector:
+    includeNodeLabels: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+traces:
+  server:
+    retentionPeriod: 30d
+    extraArgs:
+      retention.maxDiskUsagePercent: "80"
+    persistentVolume:
+      size: 20Gi
