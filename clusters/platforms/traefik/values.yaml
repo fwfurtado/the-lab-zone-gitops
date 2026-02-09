@@ -30,7 +30,10 @@ traefik:
   # Enable Traefik dashboard (exposed via IngressRoute below)
   ingressRoute:
     dashboard:
-      enabled: false  # We'll create our own IngressRoute
+      enabled: true
+      matchRule: Host(`traefik.platform.the-lab.zone`)
+      entryPoints:
+        - web
 
   # Providers
   providers:
