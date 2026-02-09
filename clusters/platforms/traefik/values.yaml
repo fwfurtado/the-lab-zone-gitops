@@ -25,7 +25,7 @@ traefik:
     otlp:
       enabled: true
       endpoint: "http://victoria-vt-single-server.monitoring.svc.cluster.local:10428/insert/opentelemetry/v1/traces"
-    sampleRate: 100
+    sampleRate: 1
 
   # Enable Traefik dashboard (exposed via IngressRoute below)
   ingressRoute:
