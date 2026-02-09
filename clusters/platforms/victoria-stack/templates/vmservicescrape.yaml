@@ -27,7 +27,7 @@ metadata:
     app.kubernetes.io/name: metrics
     app.kubernetes.io/version: v1.135.0
     helm.sh/chart: metrics-0.70.0
-  name: victoria-metrics-traces
+  name: victoria-metrics-vt-single
   namespace: monitoring
 spec:
   endpoints:
