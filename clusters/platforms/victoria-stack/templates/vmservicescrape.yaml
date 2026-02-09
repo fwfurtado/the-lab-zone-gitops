@@ -1,0 +1,38 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  labels:
+    app.kubernetes.io/instance: victoria
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: metrics
+    app.kubernetes.io/version: v1.135.0
+    helm.sh/chart: metrics-0.70.0
+  name: victoria-metrics-logs
+  namespace: monitoring
+spec:
+  endpoints:
+    - port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: victoria
+      app.kubernetes.io/name: logs
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  labels:
+    app.kubernetes.io/instance: victoria
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: metrics
+    app.kubernetes.io/version: v1.135.0
+    helm.sh/chart: metrics-0.70.0
+  name: victoria-metrics-traces
+  namespace: monitoring
+spec:
+  endpoints:
+    - port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: victoria
+      app.kubernetes.io/name: vt-single
