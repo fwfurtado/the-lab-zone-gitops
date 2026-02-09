@@ -11,8 +11,5 @@ dependencies:
 - name: victoria-traces-single
   repository: https://victoriametrics.github.io/helm-charts/
   version: 0.0.6
-- name: opentelemetry-operator
-  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  version: 0.105.0
-digest: sha256:b896d1d20b5e85bb12faa997b2c30ee27a8c83ca44a15ac2ebb58d80f2c3e468
-generated: "2026-02-09T18:58:55.752069339-03:00"
+digest: sha256:88e8061643ede2a6872c1b7375cd4a2c2b9c4e8ff5442c92d18922ea07fcf91a
+generated: "2026-02-09T19:03:07.461273399-03:00"
