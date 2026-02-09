@@ -5,8 +5,6 @@ metrics:
   vmsingle:
     spec:
       retentionPeriod: 30d
-      # extraArgs:
-        # retention.maxDiskUsagePercent: "80"
       storage:
         resources:
           requests:
