@@ -7,9 +7,10 @@ metrics:
       retentionPeriod: 30d
       extraArgs:
         retention.maxDiskUsagePercent: "80"
-      resources:
-        requests:
-          storage: 20Gi
+      storage:
+        resources:
+          requests:
+            storage: 20Gi
 
 logs:
   dashboards:
