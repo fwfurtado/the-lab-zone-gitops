@@ -18,3 +18,11 @@ dependencies:
     alias: traces
     version: "0.0.6"
     repository: https://victoriametrics.github.io/helm-charts/
+# TODO: add this to prod and dev cluster.
+# Along side templates folder with  OpenTelemetryCollector pointing to victoria-traces-single and Instrumentation to inject into pods.
+# Add annotation instrumentation.opentelemetry.io/inject-(go|python|java|nodejs|dotnet...): "true" to namespaces.
+# If running cluster with Istio. Add MeshConfig to register extensionProvides for otel-provider. And add Telemetry custom resource pointing to provider name otel-collector and randomSamplePercentage to 100.
+  - name: opentelemetry-operator
+    alias: otel-operator
+    version: "0.105.0"
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts

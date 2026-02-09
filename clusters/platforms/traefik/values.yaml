@@ -21,6 +21,12 @@ traefik:
       exposedPort: 443
       protocol: TCP
 
+  tracing:
+    otlp:
+      enabled: true
+      endpoint: "http://victoria-vt-single-server.monitoring.svc.cluster.local:10428/insert/opentelemetry/v1/traces"
+    samplingRate: 100
+
   # Enable Traefik dashboard (exposed via IngressRoute below)
   ingressRoute:
     dashboard:
