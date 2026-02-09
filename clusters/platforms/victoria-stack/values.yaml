@@ -1,6 +1,7 @@
 metrics:
   grafana:
-    enabled: false
+    persistence:
+      enabled: true
   vmsingle:
     spec:
       retentionPeriod: 30d
