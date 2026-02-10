@@ -17,6 +17,8 @@ garage:
   monitoring:
     metrics:
       enabled: true
+      serviceMonitor:
+        enabled: true
 app:
   namespace: garage
 # Garage WebUI configuration
