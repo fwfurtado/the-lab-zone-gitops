@@ -11,6 +11,9 @@ gitea:
   valkey:
     enabled: true
 
+  valkey-cluster:
+    enabled: false
+
   # Persistence for Gitea data (repos, LFS, etc.)
   persistence:
     enabled: true
