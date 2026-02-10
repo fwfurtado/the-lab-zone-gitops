@@ -19,6 +19,8 @@ logs:
       grafana_dashboard: "1"
   server:
     retentionPeriod: 30d
+    serviceMonitor:
+      enabled: true
     extraArgs:
       retention.maxDiskUsagePercent: "80"
     persistentVolume:
@@ -28,6 +30,8 @@ logs:
         cpu: 200m
         memory: 512Mi
 log-collectors:
+  podMonitor:
+    enabled: true
   remoteWrite:
     - url: http://victoria-logs-server:9428
   collector:
@@ -43,6 +47,8 @@ log-collectors:
 traces:
   server:
     retentionPeriod: 30d
+    serviceMonitor:
+      enabled: true
     extraArgs:
       retention.maxDiskUsagePercent: "80"
     persistentVolume:
