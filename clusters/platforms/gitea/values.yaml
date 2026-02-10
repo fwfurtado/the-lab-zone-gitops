@@ -1,0 +1,90 @@
+gitea:
+  # -- Disable built-in PostgreSQL (using CloudNativePG)
+  postgresql:
+    enabled: false
+
+  # -- Disable HA PostgreSQL
+  postgresql-ha:
+    enabled: false
+
+  # -- Use built-in Valkey (Redis-compatible) for cache/session
+  valkey:
+    enabled: true
+
+  # Persistence for Gitea data (repos, LFS, etc.)
+  persistence:
+    enabled: true
+    storageClass: truenas-nfs
+    size: 100Gi
+
+  # Gitea configuration (maps to app.ini sections)
+  gitea:
+    config:
+      APP_NAME: "The Lab Zone Git"
+
+      server:
+        DOMAIN: git.platform.the-lab.zone
+        ROOT_URL: https://git.platform.the-lab.zone
+        SSH_DOMAIN: git.platform.the-lab.zone
+        SSH_PORT: 22
+
+      database:
+        DB_TYPE: postgres
+        HOST: gitea-pg-rw.gitea.svc.cluster.local:5432
+        NAME: gitea
+        USER: gitea
+        SCHEMA: public
+
+      service:
+        DISABLE_REGISTRATION: false
+        ALLOW_ONLY_EXTERNAL_REGISTRATION: false
+        ENABLE_NOTIFY_MAIL: false
+
+      openid:
+        ENABLE_OPENID_SIGNIN: false
+        ENABLE_OPENID_SIGNUP: false
+
+      oauth2_client:
+        ENABLE_AUTO_REGISTRATION: true
+        ACCOUNT_LINKING: auto
+        USERNAME: preferred_username
+
+    # Database password injected from CNPG auto-generated secret
+    additionalConfigFromEnvs:
+      - name: GITEA__DATABASE__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: gitea-pg-app
+            key: password
+
+    # OAuth2 provider (Authentik) - credentials from ExternalSecret
+    oauth:
+      - name: "authentik"
+        provider: "openidConnect"
+        existingSecret: gitea-authentik-oauth
+        autoDiscoverUrl: "https://auth.platform.the-lab.zone/application/o/gitea/.well-known/openid-configuration"
+        iconUrl: "https://auth.platform.the-lab.zone/static/dist/assets/icons/icon.png"
+        scopes: "email profile"
+
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+  # Service configuration
+  service:
+    http:
+      type: ClusterIP
+      port: 3000
+    ssh:
+      type: ClusterIP
+      port: 22
+
+  # Resources
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
