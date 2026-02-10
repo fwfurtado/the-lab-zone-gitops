@@ -1,2 +1,4 @@
 external-secrets:
   installCRDs: true
+  serviceMonitor:
+    enabled: true
