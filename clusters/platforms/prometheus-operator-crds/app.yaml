@@ -1,0 +1,4 @@
+app:
+  name: prometheus-operator-crds
+  namespace: prometheus-operator-crds
+  syncWave: "0"
