@@ -1,0 +1,4 @@
+app:
+  name: authentik
+  namespace: authentik
+  syncWave: "3"

@@ -1,0 +1,69 @@
+authentik:
+  # -- Disable bundled PostgreSQL (we use CloudNativePG)
+  postgresql:
+    enabled: false
+
+  # -- Disable bundled Redis (not needed since 2025.10)
+  redis:
+    enabled: false
+
+  authentik:
+    secret_key: ""  # Injected via ExternalSecret → env var
+    error_reporting:
+      enabled: false
+    postgresql:
+      host: authentik-pg-rw.authentik.svc.cluster.local
+      port: 5432
+      name: authentik
+      user: authentik
+      password: ""  # Injected via ExternalSecret → env var
+
+  server:
+    replicas: 1
+    env:
+      - name: AUTHENTIK_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: authentik-secrets
+            key: secret-key
+      - name: AUTHENTIK_POSTGRESQL__PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: authentik-pg-app
+            key: password
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
+  worker:
+    replicas: 1
+    env:
+      - name: AUTHENTIK_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: authentik-secrets
+            key: secret-key
+      - name: AUTHENTIK_POSTGRESQL__PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: authentik-pg-app
+            key: password
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi

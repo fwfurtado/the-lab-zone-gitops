@@ -1,0 +1,36 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: authentik-pg
+  namespace: authentik
+spec:
+  description: "PostgreSQL cluster for Authentik"
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.5
+  instances: 3
+
+  storage:
+    storageClass: truenas-nfs
+    size: 5Gi
+
+  bootstrap:
+    initdb:
+      database: authentik
+      owner: authentik
+      encoding: UTF8
+
+  postgresql:
+    parameters:
+      shared_buffers: "128MB"
+      max_connections: "150"
+
+  monitoring:
+    enablePodMonitor: false
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
