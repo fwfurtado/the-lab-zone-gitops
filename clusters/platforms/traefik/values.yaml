@@ -27,6 +27,15 @@ traefik:
       endpoint: "http://victoria-vt-single-server.monitoring.svc.cluster.local:10428/insert/opentelemetry/v1/traces"
     sampleRate: 1
 
+  metrics:
+    prometheus:
+      service:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+      prometheusRule:
+        enabled: true
+
   # Enable Traefik dashboard (exposed via IngressRoute below)
   ingressRoute:
     dashboard:
