@@ -1,5 +1,6 @@
 cloudnative-pg:
   monitoring:
+    podMonitorEnabled: true
     grafanaDashboard:
       namespace: monitoring
       create: true
