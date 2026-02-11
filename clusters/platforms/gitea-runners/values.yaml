@@ -16,6 +16,8 @@ actions:
           labels:
             - "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-latest"
             - "ubuntu-22.04:docker://ghcr.io/catthehacker/ubuntu:act-22.04"
+        cache:
+          external_server: "http://gha-cache-server.gitea-runners.svc.cluster.local:3000"
 
     dind:
       repository: docker
@@ -42,7 +44,7 @@ cacheServer:
   env:
     # Storage driver: s3 for Garage
     STORAGE_DRIVER: s3
-    STORAGE_S3_BUCKET: actions-cache
+    STORAGE_S3_BUCKET: action-cache
     AWS_REGION: garage
     ENABLE_DIRECT_DOWNLOADS: "true"
     CACHE_CLEANUP_OLDER_THAN_DAYS: "30"
