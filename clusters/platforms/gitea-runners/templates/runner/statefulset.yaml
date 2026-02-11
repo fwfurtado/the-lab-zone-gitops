@@ -22,7 +22,6 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/runner/configmap.yaml") . | sha256sum }}
         checksum/daemon: {{ include (print $.Template.BasePath "/runner/dind-config-map.yaml") . | sha256sum }}
-
     spec:
       initContainers:
         # 1. Wait for Gitea to be reachable
@@ -101,6 +100,8 @@ spec:
         - name: dind-daemon-config
           configMap:
             name: dind-daemon-config
+        - name: dind-storage
+          emptyDir: {}
 
   volumeClaimTemplates:
     - metadata:
@@ -113,13 +114,3 @@ spec:
         resources:
           requests:
             storage: {{ .Values.runner.persistence.size }}
-    - metadata:
-        name: dind-storage
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        {{- with .Values.runner.dind.storage.storageClass }}
-        storageClassName: {{ . }}
-        {{- end }}
-        resources:
-          requests:
-            storage: {{ .Values.runner.dind.storage.size }}
