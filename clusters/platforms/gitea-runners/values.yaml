@@ -11,6 +11,8 @@ runner:
     existingSecretKey: token
 
   config:
+    log:
+      level: info
     runner:
       capacity: 2
       timeout: 1h

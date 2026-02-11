@@ -20,8 +20,9 @@ spec:
         app.kubernetes.io/name: act-runner
         app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/runner-configmap.yaml") . | sha256sum }}
-        checksum/daemon: {{ include (print $.Template.BasePath "/dind-daemon-config.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/runner/configmap.yaml") . | sha256sum }}
+        checksum/daemon: {{ include (print $.Template.BasePath "/runner/dind-config-map.yaml") . | sha256sum }}
+
     spec:
       initContainers:
         # 1. Wait for Gitea to be reachable

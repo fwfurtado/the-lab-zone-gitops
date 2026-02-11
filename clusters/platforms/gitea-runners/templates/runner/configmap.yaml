@@ -33,16 +33,3 @@ data:
       valid_volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: dind-daemon-config
-  namespace: {{ .Release.Namespace }}
-data:
-  daemon.json: |
-    {
-      "mtu": {{ .Values.runner.dind.mtu }},
-      "dns": {{ .Values.runner.dind.dns | toJson }}
-    }
