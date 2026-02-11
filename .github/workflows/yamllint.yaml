@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install yamllint
-        run: pip install yamllint
+        run: apt-get install yamllint
 
       - name: Get changed YAML files
         id: changed

@@ -21,8 +21,17 @@ jobs:
       - name: Install editorconfig-checker
         run: |
           EC_VERSION="3.3.0"
-          curl -sSfL "https://github.com/editorconfig-checker/editorconfig-checker/releases/download/v${EC_VERSION}/ec-linux-amd64.tar.gz" \
+          # Debug: test connectivity
+          echo "Testing connectivity..."
+          curl -sSf --max-time 10 https://github.com 2>&1 || echo "curl to github.com failed"
+          wget -q --spider https://github.com 2>&1 || echo "wget to github.com failed"
+
+          # Try wget first, fallback to curl with --insecure for diagnosis
+          wget -qO- "https://github.com/editorconfig-checker/editorconfig-checker/releases/download/v${EC_VERSION}/ec-linux-amd64.tar.gz" \
+            | tar xz \
+          || curl -sSfL --insecure "https://github.com/editorconfig-checker/editorconfig-checker/releases/download/v${EC_VERSION}/ec-linux-amd64.tar.gz" \
             | tar xz
+
           mv bin/ec-linux-amd64 /usr/local/bin/editorconfig-checker
 
       - name: Run editorconfig-checker (changed files)
