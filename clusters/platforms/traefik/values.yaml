@@ -24,6 +24,9 @@ traefik:
       port: 2222
       exposedPort: 22
       protocol: TCP
+      expose:
+        default: true
+
 
   tracing:
     otlp:
