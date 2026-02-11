@@ -22,6 +22,11 @@ gitea:
 
   # Gitea configuration (maps to app.ini sections)
   gitea:
+
+    admin:
+      existingSecret: gitea-admin-credentials
+      email: "gitea@the-lab.zone"
+
     config:
       APP_NAME: "The Lab Zone Git"
 
