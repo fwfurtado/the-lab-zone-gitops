@@ -1,0 +1,4 @@
+app:
+  name: gitea-runners
+  namespace: gitea
+  syncWave: "5"
