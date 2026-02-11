@@ -22,6 +22,9 @@ actions:
     dind:
       repository: docker
       tag: "28.3.3-dind"
+      extraArgs:
+        - "--dns=1.1.1.1"
+        - "--dns=8.8.8.8"
 
     persistence:
       size: 2Gi
