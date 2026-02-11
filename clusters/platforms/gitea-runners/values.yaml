@@ -44,7 +44,7 @@ cacheServer:
   env:
     # Storage driver: s3 for Garage
     STORAGE_DRIVER: s3
-    STORAGE_S3_BUCKET: action-cache
+    STORAGE_S3_BUCKET: actions-cache
     AWS_REGION: garage
     ENABLE_DIRECT_DOWNLOADS: "true"
     CACHE_CLEANUP_OLDER_THAN_DAYS: "30"
