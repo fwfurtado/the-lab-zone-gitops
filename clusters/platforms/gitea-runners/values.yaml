@@ -22,10 +22,14 @@ actions:
     dind:
       repository: docker
       tag: "28.3.3-dind"
-      extraArgs:
-        - "--dns=1.1.1.1"
-        - "--dns=8.8.8.8"
-        - "--mtu=1450"
+      extraEnvs:
+        - name: "DOCKER_OPTS"
+          value: "--dns=1.1.1.1 --dns=8.8.8.8"
+      extraVolumeMounts:
+        - name: dind-daemon-config
+          mountPath: /etc/docker/daemon.json
+          subPath: daemon.json
+          readOnly: true
 
     persistence:
       size: 2Gi
