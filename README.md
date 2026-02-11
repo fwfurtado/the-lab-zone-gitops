@@ -204,6 +204,8 @@ Each application under `clusters/platforms/` follows a consistent structure:
 - **`Chart.yaml`** wraps upstream Helm charts as dependencies (umbrella chart pattern).
 - **`templates/`** contains cluster-specific resources like Ingress rules, CNPG database clusters, ExternalSecrets, and namespaces.
 
+
+
 ## Secrets Management
 
 Secrets are managed through a layered approach:
