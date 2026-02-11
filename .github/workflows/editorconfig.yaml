@@ -18,8 +18,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up editorconfig-checker
-        uses: editorconfig-checker/action-editorconfig-checker@main
+      - name: Install editorconfig-checker
+        run: |
+          EC_VERSION="3.3.0"
+          curl -sSfL "https://github.com/editorconfig-checker/editorconfig-checker/releases/download/v${EC_VERSION}/ec-linux-amd64.tar.gz" \
+            | tar xz
+          mv bin/ec-linux-amd64 /usr/local/bin/editorconfig-checker
+
+      - name: Run editorconfig-checker (changed files)
+        run: |
+          FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$FILES" ]; then
+            echo "No tracked files changed, skipping."
+            exit 0
+          fi
+          echo "$FILES" | while IFS= read -r f; do
+            [ -n "$f" ] && [ -f "$f" ] && echo "$f"
+          done | xargs -r editorconfig-checker
 
       - name: Get changed files
         id: changed
