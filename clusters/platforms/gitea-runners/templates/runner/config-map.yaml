@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: act-runner-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    log:
+      level: {{ .Values.runner.config.log.level }}
+
+    runner:
+      capacity: {{ .Values.runner.config.runner.capacity }}
+      timeout: {{ .Values.runner.config.runner.timeout }}
+      fetch_timeout: {{ .Values.runner.config.runner.fetch_timeout }}
+      fetch_interval: {{ .Values.runner.config.runner.fetch_interval }}
+      labels:
+        {{- range .Values.runner.config.runner.labels }}
+        - {{ . | quote }}
+        {{- end }}
+
+    cache:
+      enabled: {{ .Values.runner.config.cache.enabled }}
+      external_server: {{ printf "http://gha-cache-server.%s.svc.cluster.local:%d/" .Release.Namespace (.Values.cacheServer.port | int) | quote }}
+
+    container:
+      network: {{ .Values.runner.config.container.network | quote }}
+      privileged: {{ .Values.runner.config.container.privileged }}
+      docker_host: {{ .Values.runner.config.container.docker_host | quote }}
+      force_pull: {{ .Values.runner.config.container.force_pull }}
+      force_rebuild: {{ .Values.runner.config.container.force_rebuild }}
+      {{- with .Values.runner.config.container.valid_volumes }}
+      valid_volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dind-daemon-config
+  namespace: {{ .Release.Namespace }}
+data:
+  daemon.json: |
+    {
+      "mtu": {{ .Values.runner.dind.mtu }},
+      "dns": {{ .Values.runner.dind.dns | toJson }}
+    }

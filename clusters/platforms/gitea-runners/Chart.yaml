@@ -1,7 +1,4 @@
 apiVersion: v2
 name: gitea-runners
 version: 0.0.0
-dependencies:
-  - name: actions
-    version: "0.0.3"
-    repository: https://dl.gitea.com/charts/
+description: Gitea Actions runners with DinD and GHA cache server
