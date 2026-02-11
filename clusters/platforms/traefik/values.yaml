@@ -20,6 +20,10 @@ traefik:
       port: 8443
       exposedPort: 443
       protocol: TCP
+    gitea-ssh:
+      port: 2222
+      exposedPort: 22
+      protocol: TCP
 
   tracing:
     otlp:
