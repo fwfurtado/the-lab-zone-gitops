@@ -32,3 +32,28 @@ actions:
       limits:
         cpu: "2"
         memory: 2Gi
+
+cacheServer:
+  image:
+    repository: ghcr.io/falcondev-oss/github-actions-cache-server
+    tag: "8.1.4"
+  replicas: 1
+  port: 3000
+  env:
+    # Storage driver: s3 for Garage
+    STORAGE_DRIVER: s3
+    STORAGE_S3_BUCKET: actions-cache
+    AWS_REGION: garage
+    ENABLE_DIRECT_DOWNLOADS: "true"
+    CACHE_CLEANUP_OLDER_THAN_DAYS: "30"
+  s3SecretName: gha-cache-s3-credentials
+  persistence:
+    size: 5Gi
+    storageClass: truenas-nfs
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi

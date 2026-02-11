@@ -1,0 +1,90 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gha-cache-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: gha-cache-server
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.cacheServer.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gha-cache-server
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gha-cache-server
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: cache-server
+          image: "{{ .Values.cacheServer.image.repository }}:{{ .Values.cacheServer.image.tag }}"
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - name: http
+              containerPort: {{ .Values.cacheServer.port }}
+              protocol: TCP
+          env:
+            # API_BASE_URL must be reachable by the runner job containers.
+            # Since act_runner sets ACTIONS_CACHE_URL via external_server, the
+            # job containers call this URL directly — so it needs to resolve
+            # from within the cluster network.
+            - name: API_BASE_URL
+              value: "http://gha-cache-server.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.cacheServer.port }}"
+            {{- range $key, $value := .Values.cacheServer.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            # S3 credentials from ExternalSecret
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.cacheServer.s3SecretName }}
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.cacheServer.s3SecretName }}
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_ENDPOINT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.cacheServer.s3SecretName }}
+                  key: AWS_ENDPOINT_URL
+          volumeMounts:
+            - name: cache-data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.cacheServer.resources | nindent 12 }}
+      volumes:
+        - name: cache-data
+          persistentVolumeClaim:
+            claimName: gha-cache-server-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gha-cache-server-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.cacheServer.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.cacheServer.persistence.size }}
