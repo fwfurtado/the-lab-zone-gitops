@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install yamllint
-        run: apt-get install yamllint
+        run: apt update && apt get install -y yamllint
 
       - name: Get changed YAML files
         id: changed
