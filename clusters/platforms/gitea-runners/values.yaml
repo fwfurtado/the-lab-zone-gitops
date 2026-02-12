@@ -50,6 +50,7 @@ runner:
     # MTU must match pod network (Cilium VXLAN = 1450)
     mtu: 1450
     dns:
+      - "10.96.0.10"
       - "1.1.1.1"
       - "8.8.8.8"
     image:
