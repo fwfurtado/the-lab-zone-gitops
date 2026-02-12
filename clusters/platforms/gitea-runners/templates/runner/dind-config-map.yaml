@@ -7,5 +7,6 @@ metadata:
 data:
   daemon.json: |
     {
-      "mtu": {{ .Values.runner.dind.mtu }}
+      "mtu": {{ .Values.runner.dind.mtu }},
+      "dns": {{ .Values.runner.dind.dns | toJson }}
     }
