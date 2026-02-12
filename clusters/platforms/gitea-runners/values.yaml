@@ -64,9 +64,6 @@ runner:
       limits:
         cpu: "2"
         memory: 2Gi
-    # Storage: uses emptyDir (local node disk) for performance.
-    # NFS is too slow for Docker's small-file metadata operations.
-    # Images are re-pulled on pod restart — acceptable trade-off.
 
 cacheServer:
   image:
