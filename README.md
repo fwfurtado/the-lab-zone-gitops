@@ -17,6 +17,7 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 - [Networking](#networking)
 - [Storage](#storage)
 - [Observability](#observability)
+- [In-Cluster CI — Gitea Runners](#in-cluster-ci--gitea-runners)
 - [CI / Linting](#ci--linting)
 - [Local Development](#local-development)
 - [Prerequisites](#prerequisites)
@@ -45,6 +46,7 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 │          victoria-stack                                       │
 │  wave 3: argocd, authentik                                   │
 │  wave 4: gitea                                               │
+│  wave 5: gitea-runners                                       │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -68,6 +70,7 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 │       ├── external-secrets/
 │       ├── garage/
 │       ├── gitea/
+│       ├── gitea-runners/
 │       ├── metallb/
 │       ├── prometheus-operator-crds/
 │       ├── sealed-secrets/
@@ -100,6 +103,7 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 | **ArgoCD** | `argocd` | GitOps continuous delivery |
 | **Authentik** | `authentik` | Identity Provider (SSO/OAuth2/SAML) |
 | **Gitea** | `gitea` | Self-hosted Git service with OAuth via Authentik |
+| **Gitea Runners** | `gitea-runners` | Gitea Actions CI runners (act_runner + DinD) with GHA cache server |
 
 ## Sync Wave Order
 
@@ -112,6 +116,7 @@ Applications are deployed in a specific order using ArgoCD sync waves to respect
 | **2** | Democratic-CSI, External Secrets, Traefik, Victoria Stack | Storage, secrets, ingress & observability |
 | **3** | ArgoCD, Authentik | GitOps platform & identity provider |
 | **4** | Gitea | Applications depending on all infrastructure |
+| **5** | Gitea Runners | CI runners depending on Gitea being available |
 
 ## Bootstrap
 
@@ -204,8 +209,6 @@ Each application under `clusters/platforms/` follows a consistent structure:
 - **`Chart.yaml`** wraps upstream Helm charts as dependencies (umbrella chart pattern).
 - **`templates/`** contains cluster-specific resources like Ingress rules, CNPG database clusters, ExternalSecrets, and namespaces.
 
-
-
 ## Secrets Management
 
 Secrets are managed through a layered approach:
@@ -219,7 +222,7 @@ Secrets are managed through a layered approach:
 
 **Flow:** 1Password → External Secrets Operator → Kubernetes Secrets
 
-Applications that use ExternalSecrets: Authentik, Garage, Gitea (OAuth), Democratic-CSI (TrueNAS config).
+Applications that use ExternalSecrets: Authentik, Garage, Gitea (OAuth), Democratic-CSI (TrueNAS config), Gitea Runners (runner token + S3 credentials).
 
 ## Networking
 
@@ -266,6 +269,53 @@ The **Victoria Metrics Stack** provides full observability:
 | Grafana | Dashboards & visualization |
 
 Prometheus `ServiceMonitor` and `PodMonitor` CRDs are installed at wave 0 so all applications can expose metrics from the start.
+
+## In-Cluster CI — Gitea Runners
+
+[Gitea Actions](https://docs.gitea.com/usage/actions/overview) runners are deployed as a StatefulSet with Docker-in-Docker (DinD) sidecars for container-based workflows.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│  StatefulSet: act-runner (2 replicas)        │
+│                                              │
+│  initContainers:                             │
+│    1. init-gitea   — waits for Gitea API     │
+│    2. dind         — native sidecar (K8s     │
+│                      1.28+), privileged      │
+│  containers:                                 │
+│    - act-runner    — Gitea Actions runner     │
+│                      (capacity: 2 jobs each) │
+└──────────────────┬──────────────────────────┘
+                   │ cache API
+                   ▼
+┌─────────────────────────────────────────────┐
+│  Deployment: gha-cache-server                │
+│  GitHub Actions-compatible cache backed by   │
+│  Garage S3 (bucket: actions-cache)           │
+└─────────────────────────────────────────────┘
+```
+
+### Key details
+
+| Setting | Value |
+|---|---|
+| Runner image | `docker.gitea.com/act_runner:0.2.13` |
+| DinD image | `docker:28.3.3-dind` |
+| Replicas | 2 runners, each with capacity for 2 concurrent jobs |
+| Labels | `ubuntu-latest`, `ubuntu-22.04` (using `catthehacker/ubuntu` images) |
+| Cache | GHA-compatible cache server backed by Garage S3 |
+| DinD MTU | 1450 (matches Cilium VXLAN) |
+| Namespace | `gitea-runners` (PSA: `privileged`) |
+| Persistence | 2Gi per runner (data), 5Gi for cache server (all on `truenas-nfs`) |
+
+### Secrets
+
+Two ExternalSecrets are synced from 1Password:
+
+- **`gitea-runner-token`** — Registration token for connecting runners to Gitea
+- **`gha-cache-s3-credentials`** — S3 access key, secret key, and endpoint URL for the cache server to access Garage
 
 ## CI / Linting
 
