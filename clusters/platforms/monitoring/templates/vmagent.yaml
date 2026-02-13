@@ -1,0 +1,29 @@
+---
+# VMAgent deployed by the operator.
+# Discovers all VMServiceScrape/VMPodScrape/VMNodeScrape in the cluster
+# and remote-writes metrics to the external VMsingle on TrueNAS.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: monitoring
+  namespace: {{ .Release.Namespace }}
+spec:
+  # Discover all scrape objects across all namespaces by default
+  selectAllByDefault: true
+
+  # Tag every metric with the cluster name
+  externalLabels:
+    runs-on: "k8s"
+    cluster: platform
+
+  # Ship metrics to TrueNAS VMsingle
+  remoteWrite:
+    - url: http://10.40.1.60:8428/api/v1/write
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

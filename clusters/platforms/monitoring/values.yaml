@@ -1,0 +1,54 @@
+# =============================================================================
+# VictoriaMetrics Operator
+# =============================================================================
+operator:
+  # CRDs are specless (smaller helm secret) — fine for operator-managed validation
+  crds:
+    plain: false
+    cleanup:
+      enabled: true
+      image:
+        repository: rancher/kubectl
+        pullPolicy: IfNotPresent
+
+  # Disable admission webhooks — no cert-manager in this cluster.
+  # Avoids ArgoCD re-rendering webhook certs on every sync.
+  admissionWebhooks:
+    enabled: false
+
+  # Auto-convert ServiceMonitor/PodMonitor → VMServiceScrape/VMPodScrape
+  operator:
+    disable_prometheus_converter: false
+    enable_converter_ownership: true
+
+  # Self-monitoring via VMServiceScrape
+  serviceMonitor:
+    enabled: true
+
+  resources:
+    requests:
+      cpu: 80m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# =============================================================================
+# VictoriaLogs Collector (DaemonSet)
+# =============================================================================
+log-collector:
+  # Ship logs to external VictoriaLogs on TrueNAS
+  remoteWrite:
+    - url: http://10.40.1.60:9428
+
+  # Tag every log line with the cluster name for multi-cluster filtering
+  extraArgs:
+    remoteWrite.headers: "VL-Extra-Fields: cluster=platform"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

@@ -1,4 +1,0 @@
-app:
-  name: gitea
-  namespace: gitea
-  syncWave: "4"

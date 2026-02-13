@@ -1,4 +1,0 @@
-app:
-  name: garage
-  namespace: garage
-  syncWave: "1"

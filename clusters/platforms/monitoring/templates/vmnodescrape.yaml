@@ -1,0 +1,47 @@
+---
+# Scrape kubelet metrics from all nodes.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMNodeScrape
+metadata:
+  name: kubelet
+  namespace: {{ .Release.Namespace }}
+spec:
+  scheme: https
+  tlsConfig:
+    insecureSkipVerify: true
+    caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  honorLabels: true
+  interval: 30s
+  relabelConfigs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+  metricRelabelConfigs:
+    # Drop high-cardinality Go runtime metrics from kubelet
+    - sourceLabels: [__name__]
+      regex: go_(.+)
+      action: drop
+---
+# Scrape cadvisor (container-level) metrics from all nodes.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMNodeScrape
+metadata:
+  name: cadvisor
+  namespace: {{ .Release.Namespace }}
+spec:
+  scheme: https
+  path: /metrics/cadvisor
+  tlsConfig:
+    insecureSkipVerify: true
+    caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  honorLabels: true
+  interval: 30s
+  relabelConfigs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+  metricRelabelConfigs:
+    # Keep only useful container metrics, drop noise
+    - sourceLabels: [__name__]
+      regex: container_(cpu_usage_seconds_total|memory_working_set_bytes|memory_rss|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_total|fs_writes_total)
+      action: keep

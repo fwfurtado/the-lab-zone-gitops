@@ -1,0 +1,5 @@
+app:
+  name: monitoring
+  namespace: monitoring
+  syncWave: "2"
+  releaseName: monitoring

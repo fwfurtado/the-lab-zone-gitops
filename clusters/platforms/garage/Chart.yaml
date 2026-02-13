@@ -1,7 +1,0 @@
-apiVersion: v2
-name: garage
-version: 0.0.0
-dependencies:
-  - name: garage
-    version: "2.2.0"
-    repository: https://deimosfr.github.io/deimosfr-charts/

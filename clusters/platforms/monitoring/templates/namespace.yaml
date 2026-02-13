@@ -1,3 +1,6 @@
+---
+# victoria-logs-collector DaemonSet needs hostPath for /var/log;
+# namespace must allow privileged pods.
 apiVersion: v1
 kind: Namespace
 metadata:

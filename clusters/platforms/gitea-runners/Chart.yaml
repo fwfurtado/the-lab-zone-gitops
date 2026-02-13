@@ -1,5 +1,0 @@
-apiVersion: v2
-name: gitea-runners
-icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gitea.svg
-version: 0.0.0
-description: Gitea Actions runners with DinD and GHA cache server

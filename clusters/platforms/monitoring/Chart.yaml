@@ -1,0 +1,22 @@
+apiVersion: v2
+name: monitoring
+version: 0.0.0
+description: >-
+  Kubernetes monitoring stack for The Lab Zone.
+  Deploys VM operator (with CRD conversion) and log collector as DaemonSet.
+  Metrics and logs are shipped to external VictoriaMetrics/VictoriaLogs on TrueNAS.
+  Requires prometheus-operator-crds to be installed first (wave 0).
+dependencies:
+  # VictoriaMetrics Operator — manages VMAgent, VMServiceScrape and friends
+  # via CRDs. Auto-converts prometheus-operator objects.
+  - name: victoria-metrics-operator
+    alias: operator
+    version: "0.58.1"
+    repository: https://victoriametrics.github.io/helm-charts/
+
+  # VictoriaLogs Collector — DaemonSet that tails container logs from every
+  # node and ships them to the external VictoriaLogs instance on TrueNAS.
+  - name: victoria-logs-collector
+    alias: log-collector
+    version: "0.2.9"
+    repository: https://victoriametrics.github.io/helm-charts/
