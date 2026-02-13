@@ -17,12 +17,13 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 - [Networking](#networking)
 - [Storage](#storage)
 - [Observability](#observability)
-- [In-Cluster CI — Gitea Runners](#in-cluster-ci--gitea-runners)
 - [CI / Linting](#ci--linting)
 - [Local Development](#local-development)
 - [Prerequisites](#prerequisites)
 
 ## Architecture Overview
+
+The homelab follows a split architecture: **stateless platform services** run inside a Talos Kubernetes cluster on Proxmox, while **stateful applications** (Gitea, Authentik, Grafana, Victoria Metrics/Logs, Garage, etc.) run as Docker containers on TrueNAS. Infrastructure services (Traefik, Tailscale) run as LXC containers on Proxmox, outside the cluster.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -41,12 +42,21 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 │              Kubernetes Cluster (Talos Linux)                 │
 │                                                              │
 │  wave 0: cilium, prometheus-operator-crds                    │
-│  wave 1: cloudnative-pg, garage, metallb, sealed-secrets     │
-│  wave 2: democratic-csi, external-secrets, traefik,          │
-│          victoria-stack                                       │
-│  wave 3: argocd, authentik                                   │
-│  wave 4: gitea                                               │
-│  wave 5: gitea-runners                                       │
+│  wave 1: metallb, sealed-secrets                             │
+│  wave 2: democratic-csi, external-secrets, monitoring,       │
+│          traefik                                             │
+│  wave 3: argocd                                              │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│                   Proxmox (LXC containers)                   │
+│  traefik, tailscale                                          │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│                   TrueNAS (Docker containers)                │
+│  gitea, authentik, grafana, victoria metrics/logs,           │
+│  garage, zot registry, gitea runners                         │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -63,19 +73,14 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 ├── clusters/                 # Per-cluster application definitions
 │   └── platforms/            # "platforms" cluster
 │       ├── argocd/
-│       ├── authentik/
 │       ├── cilium/
-│       ├── cloudnative-pg/
 │       ├── democratic-csi/
 │       ├── external-secrets/
-│       ├── garage/
-│       ├── gitea/
-│       ├── gitea-runners/
 │       ├── metallb/
+│       ├── monitoring/
 │       ├── prometheus-operator-crds/
 │       ├── sealed-secrets/
-│       ├── traefik/
-│       └── victoria-stack/
+│       └── traefik/
 ├── makefiles/                # Modular Make targets
 │   ├── argo.mk               # ArgoCD install & port-forward
 │   ├── bootstrap.mk          # Bootstrap secrets & root app
@@ -90,20 +95,15 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 
 | Application | Namespace | Description |
 |---|---|---|
-| **Cilium** | `kube-system` | CNI plugin with Hubble observability UI |
+| **Cilium** | `kube-system` | CNI plugin with Hubble observability UI (kube-proxy replacement) |
 | **Prometheus Operator CRDs** | `prometheus-operator-crds` | ServiceMonitor / PodMonitor CRDs for metrics |
-| **CloudNative-PG** | `cloudnative-pg` | PostgreSQL operator for in-cluster databases |
-| **Garage** | `garage` | S3-compatible distributed object storage + Web UI |
 | **MetalLB** | `metallb-system` | Bare-metal LoadBalancer (L2 mode) |
-| **Sealed Secrets** | `sealed-secrets` | Encrypt secrets for safe Git storage |
+| **Sealed Secrets** | `sealed-secrets` | Encrypt secrets for safe Git storage + UI |
 | **Democratic-CSI** | `democratic-csi` | CSI driver for TrueNAS NFS provisioning |
 | **External Secrets** | `external-secrets` | Sync secrets from 1Password into Kubernetes |
-| **Traefik** | `traefik` | Ingress controller & reverse proxy |
-| **Victoria Metrics Stack** | `monitoring` | Metrics, logs, traces & Grafana dashboards |
+| **Monitoring** | `monitoring` | VictoriaMetrics Operator + VictoriaLogs Collector; ships metrics and logs to TrueNAS |
+| **Traefik** | `traefik` | In-cluster ingress controller & reverse proxy |
 | **ArgoCD** | `argocd` | GitOps continuous delivery |
-| **Authentik** | `authentik` | Identity Provider (SSO/OAuth2/SAML) |
-| **Gitea** | `gitea` | Self-hosted Git service with OAuth via Authentik |
-| **Gitea Runners** | `gitea-runners` | Gitea Actions CI runners (act_runner + DinD) with GHA cache server |
 
 ## Sync Wave Order
 
@@ -112,11 +112,9 @@ Applications are deployed in a specific order using ArgoCD sync waves to respect
 | Wave | Applications | Purpose |
 |---|---|---|
 | **0** | Cilium, Prometheus Operator CRDs | Core networking & CRD foundations |
-| **1** | CloudNative-PG, Garage, MetalLB, Sealed Secrets | Operators & infrastructure services |
-| **2** | Democratic-CSI, External Secrets, Traefik, Victoria Stack | Storage, secrets, ingress & observability |
-| **3** | ArgoCD, Authentik | GitOps platform & identity provider |
-| **4** | Gitea | Applications depending on all infrastructure |
-| **5** | Gitea Runners | CI runners depending on Gitea being available |
+| **1** | MetalLB, Sealed Secrets | LoadBalancer IPs & secret encryption |
+| **2** | Democratic-CSI, External Secrets, Monitoring, Traefik | Storage, secrets sync, observability & ingress |
+| **3** | ArgoCD | GitOps platform (needs Traefik ingress, External Secrets for repo creds) |
 
 ## Bootstrap
 
@@ -188,7 +186,7 @@ Example `app.yaml`:
 app:
   name: my-app
   namespace: my-app
-  syncWave: "3"
+  syncWave: "2"
   releaseName: my-app
 ```
 
@@ -202,12 +200,12 @@ Each application under `clusters/platforms/` follows a consistent structure:
 ├── Chart.yaml        # Helm chart definition with upstream dependencies
 ├── Chart.lock        # Locked dependency versions
 ├── values.yaml       # Helm value overrides
-└── templates/        # Additional K8s manifests (Ingress, ExternalSecret, CNPG, etc.)
+└── templates/        # Additional K8s manifests (Ingress, ExternalSecret, etc.)
 ```
 
 - **`app.yaml`** is read by the ApplicationSet generator to create the ArgoCD Application.
 - **`Chart.yaml`** wraps upstream Helm charts as dependencies (umbrella chart pattern).
-- **`templates/`** contains cluster-specific resources like Ingress rules, CNPG database clusters, ExternalSecrets, and namespaces.
+- **`templates/`** contains cluster-specific resources like IngressRoutes, ExternalSecrets, VMAgent CRDs, and namespaces.
 
 ## Secrets Management
 
@@ -222,7 +220,7 @@ Secrets are managed through a layered approach:
 
 **Flow:** 1Password → External Secrets Operator → Kubernetes Secrets
 
-Applications that use ExternalSecrets: Authentik, Garage, Gitea (OAuth), Democratic-CSI (TrueNAS config), Gitea Runners (runner token + S3 credentials).
+Applications that use ExternalSecrets: Democratic-CSI (TrueNAS driver config).
 
 ## Networking
 
@@ -230,92 +228,52 @@ Applications that use ExternalSecrets: Authentik, Garage, Gitea (OAuth), Democra
 |---|---|
 | **CNI** | Cilium (kube-proxy replacement, Hubble enabled) |
 | **Load Balancer** | MetalLB L2 mode, IP pool: `10.40.2.1–10.40.2.254` |
-| **Ingress** | Traefik, bound to `10.40.2.1` via MetalLB |
-| **Base domain** | `platform.the-lab.zone` |
+| **Ingress** | Traefik (in-cluster), bound to `10.40.2.1` via MetalLB |
+| **Edge proxy** | Traefik (LXC on Proxmox), handles TLS termination via Cloudflare DNS challenge |
+| **Base domain** | `the-lab.zone` with subdomains: `infra`, `platform`, `tooling`, `apps`, `k8s`, `web` |
 
-### Service Endpoints
+### Traffic Flow
+
+External requests hit the Traefik LXC container (`10.40.0.50`), which terminates TLS using Let's Encrypt certificates via Cloudflare DNS challenge. For in-cluster services, the LXC proxy forwards HTTP traffic to the in-cluster Traefik at `10.40.2.1` (MetalLB IP), which routes to the appropriate pod. For TrueNAS services, the LXC proxy forwards directly to the service IP on the `10.40.1.x` subnet.
+
+### In-Cluster Service Endpoints
 
 | Service | URL |
 |---|---|
 | ArgoCD | `argocd.platform.the-lab.zone` |
-| Authentik | `auth.platform.the-lab.zone` |
-| Gitea | `git.platform.the-lab.zone` |
-| Garage | `garage.platform.the-lab.zone` |
-| Grafana | `grafana.platform.the-lab.zone` |
-| Victoria Metrics | `vms.platform.the-lab.zone` |
 | Hubble UI | `hubble.platform.the-lab.zone` |
 | Traefik Dashboard | `traefik.platform.the-lab.zone` |
 
-> **Note:** TLS termination is handled externally (Traefik LXC proxy). In-cluster traffic uses HTTP.
+> **Note:** TLS termination is handled by the Traefik LXC proxy. In-cluster traffic uses HTTP.
 
 ## Storage
 
 | Component | Details |
 |---|---|
 | **CSI Driver** | Democratic-CSI with TrueNAS NFS backend |
-| **Storage Class** | `truenas-nfs` |
-| **Databases** | CloudNative-PG (PostgreSQL) for Authentik (3 replicas, 5Gi) and Gitea (1 replica, 20Gi) |
-| **Object Storage** | Garage (S3-compatible) |
+| **Default StorageClass** | `truenas-nfs` (Retain policy, immediate binding) |
 
 ## Observability
 
-The **Victoria Metrics Stack** provides full observability:
+Observability uses a split architecture: the **collection layer** runs inside the Kubernetes cluster, while the **storage and visualization layer** runs on TrueNAS.
+
+### In-Cluster (monitoring chart)
 
 | Component | Purpose |
 |---|---|
-| Victoria Metrics | Metrics collection & storage |
-| Victoria Logs | Log aggregation |
-| Victoria Traces | Distributed tracing (receives traces from Traefik) |
-| Grafana | Dashboards & visualization |
+| **VictoriaMetrics Operator** | Manages VMAgent, VMServiceScrape, VMNodeScrape CRDs; auto-converts Prometheus ServiceMonitor/PodMonitor |
+| **VMAgent** | Scrapes all discovered targets and remote-writes metrics to TrueNAS VMsingle |
+| **VictoriaLogs Collector** | DaemonSet that tails container logs from every node and ships them to TrueNAS VictoriaLogs |
 
-Prometheus `ServiceMonitor` and `PodMonitor` CRDs are installed at wave 0 so all applications can expose metrics from the start.
+### On TrueNAS (Docker containers)
 
-## In-Cluster CI — Gitea Runners
+| Component | Address | Purpose |
+|---|---|---|
+| **VMsingle** | `10.40.1.60:8428` | Metrics storage (receives remote-write from VMAgent) |
+| **VictoriaLogs** | `10.40.1.60:9428` | Log storage (receives logs from collector) |
+| **Grafana** | `10.40.1.50` | Dashboards & visualization |
 
-[Gitea Actions](https://docs.gitea.com/usage/actions/overview) runners are deployed as a StatefulSet with Docker-in-Docker (DinD) sidecars for container-based workflows.
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│  StatefulSet: act-runner (2 replicas)        │
-│                                              │
-│  initContainers:                             │
-│    1. init-gitea   — waits for Gitea API     │
-│    2. dind         — native sidecar (K8s     │
-│                      1.28+), privileged      │
-│  containers:                                 │
-│    - act-runner    — Gitea Actions runner     │
-│                      (capacity: 2 jobs each) │
-└──────────────────┬──────────────────────────┘
-                   │ cache API
-                   ▼
-┌─────────────────────────────────────────────┐
-│  Deployment: gha-cache-server                │
-│  GitHub Actions-compatible cache backed by   │
-│  Garage S3 (bucket: actions-cache)           │
-└─────────────────────────────────────────────┘
-```
-
-### Key details
-
-| Setting | Value |
-|---|---|
-| Runner image | `docker.gitea.com/act_runner:0.2.13` |
-| DinD image | `docker:28.3.3-dind` |
-| Replicas | 2 runners, each with capacity for 2 concurrent jobs |
-| Labels | `ubuntu-latest`, `ubuntu-22.04` (using `catthehacker/ubuntu` images) |
-| Cache | GHA-compatible cache server backed by Garage S3 |
-| DinD MTU | 1450 (matches Cilium VXLAN) |
-| Namespace | `gitea-runners` (PSA: `privileged`) |
-| Persistence | 2Gi per runner (data), 5Gi for cache server (all on `truenas-nfs`) |
-
-### Secrets
-
-Two ExternalSecrets are synced from 1Password:
-
-- **`gitea-runner-token`** — Registration token for connecting runners to Gitea
-- **`gha-cache-s3-credentials`** — S3 access key, secret key, and endpoint URL for the cache server to access Garage
+Prometheus `ServiceMonitor` and `PodMonitor` CRDs are installed at wave 0 so all applications can expose metrics from the start. The VictoriaMetrics Operator auto-converts these into VMServiceScrape/VMPodScrape objects.
 
 ## CI / Linting
 
