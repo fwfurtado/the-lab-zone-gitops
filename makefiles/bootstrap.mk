@@ -1,10 +1,7 @@
 # Bootstrap: repo secret + sealed-secrets key + root Application
 # Requires: KUBECTL, OP, OPENSSL, SSH-KEYGEN
 
-.PHONY: bootstrap bootstrap-secrets bootstrap-sealed-secrets-key bootstrap-seal-onepassword-local bootstrap-app
-
-# Aplica o Secret do repositório, a chave do Sealed Secrets e o bootstrap/root.yaml.
-bootstrap: bootstrap-secrets bootstrap-sealed-secrets-key bootstrap-app
+.PHONY: bootstrap-secrets bootstrap-sealed-secrets-key bootstrap-seal-onepassword-local bootstrap-app
 
 # Aplica apenas o Secret do repo via 1Password inject (op inject).
 # Ajuste o path op:// no arquivo bootstrap/repo-secret.yaml.injectable para o seu item no 1Password.

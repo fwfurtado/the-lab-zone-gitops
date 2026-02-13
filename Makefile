@@ -15,7 +15,10 @@ include makefiles/argo.mk
 include makefiles/bootstrap.mk
 include makefiles/yamllint.mk
 
-.PHONY: template validate clean yamllint
+.PHONY: template validate clean yamllint bootstrap
+
+# Aplica o Secret do repositório, a chave do Sealed Secrets, configura o cluster e aplica o bootstrap/root.yaml.
+bootstrap: bootstrap-secrets bootstrap-sealed-secrets-key argocd-cluster-config bootstrap-app
 
 template:
 	@set -euo pipefail; \
