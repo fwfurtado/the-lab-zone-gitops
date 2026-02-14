@@ -13,12 +13,14 @@ CHART_DIRS := $(sort $(dir $(wildcard clusters/*/*/Chart.yaml)))
 
 include makefiles/argo.mk
 include makefiles/bootstrap.mk
+include makefiles/cilium.mk
 include makefiles/yamllint.mk
+include makefiles/zot.mk
 
 .PHONY: template validate clean yamllint bootstrap
 
 # Aplica o Secret do repositório, a chave do Sealed Secrets, configura o cluster e aplica o bootstrap/root.yaml.
-bootstrap: bootstrap-secrets bootstrap-sealed-secrets-key argocd-cluster-config bootstrap-app
+bootstrap: cilium argocd bootstrap-secrets bootstrap-sealed-secrets-key argocd-cluster-config bootstrap-app
 
 template:
 	@set -euo pipefail; \

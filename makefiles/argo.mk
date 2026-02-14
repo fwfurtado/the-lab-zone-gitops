@@ -8,7 +8,7 @@ ARGOCD_PORT ?= 8080
 .PHONY: argocd argocd-install argocd-port-forward argocd-cluster-config
 
 # Instala ArgoCD no cluster e inicia port-forward (Ctrl+C encerra o port-forward).
-argocd: argocd-install argocd-port-forward
+argocd: argocd-install
 
 argocd-install:
 	$(HELM) repo add argo $(ARGOCD_HELM_REPO) 2>/dev/null || true
