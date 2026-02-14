@@ -4,7 +4,9 @@ argo-cd:
   configs:
     params:
       server.insecure: true
+      server.login.prompt.enabled: false
     cm:
+      admin.enabled: false
       url: https://argocd.platform.the-lab.zone
       dex.config: |
         connectors:
