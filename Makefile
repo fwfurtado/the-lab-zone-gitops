@@ -11,16 +11,14 @@ KUBECONFORM_SCHEMA_LOCATIONS ?= -schema-location default \
 
 CHART_DIRS := $(sort $(dir $(wildcard clusters/*/*/Chart.yaml)))
 
-include makefiles/argo.mk
 include makefiles/bootstrap.mk
-include makefiles/cilium.mk
 include makefiles/yamllint.mk
 include makefiles/zot.mk
 
 .PHONY: template validate clean yamllint bootstrap
 
 # Aplica o Secret do repositório, a chave do Sealed Secrets, configura o cluster e aplica o bootstrap/root.yaml.
-bootstrap: cilium argocd bootstrap-secrets bootstrap-sealed-secrets-key argocd-cluster-config bootstrap-app
+bootstrap: bootstrap-secrets bootstrap-sealed-secrets-key bootstrap-app
 
 template:
 	@set -euo pipefail; \
