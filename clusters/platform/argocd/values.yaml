@@ -11,12 +11,12 @@ argo-cd:
       dex.config: |
         connectors:
           - type: oidc
-            id: authentik
-            name: Authentik
+            id: authelia
+            name: Authelia
             config:
-              issuer: https://auth.infra.the-lab.zone/application/o/argocd/
+              issuer: https://auth.infra.the-lab.zone
               clientID: argocd
-              clientSecret: $argocd-oidc:dex.authentik.clientSecret
+              clientSecret: $argocd-oidc:dex.authelia.clientSecret
               insecureEnableGroups: true
               scopes:
                 - openid
@@ -24,9 +24,7 @@ argo-cd:
                 - email
                 - groups
     rbac:
-      # Authenticated users without a matching group get read-only
       policy.default: role:readonly
-      # Members of "ArgoCD Admins" group in Authentik get admin role
       policy.csv: |
         g, sre, role:admin
       scopes: "[groups, email]"
