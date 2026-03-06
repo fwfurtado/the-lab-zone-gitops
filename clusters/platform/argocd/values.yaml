@@ -18,6 +18,7 @@ argo-cd:
               clientID: argocd
               clientSecret: $argocd-oidc:dex.authelia.clientSecret
               insecureEnableGroups: true
+              userNameKey: preferred_username
               scopes:
                 - openid
                 - profile
