@@ -25,7 +25,7 @@ velero:
     daily-full-backup:
       schedule: "0 3 * * *"
       template:
-        ttl: "168h"
+        ttl: "360h" # 15 days
         storageLocation: default
         includedNamespaces:
           - "*"
