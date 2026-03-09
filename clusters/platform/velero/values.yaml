@@ -27,6 +27,8 @@ velero:
       template:
         ttl: "168h"
         storageLocation: default
+        includedNamespaces:
+          - "*"
         excludedNamespaces:
           - kube-system
           - kube-public
