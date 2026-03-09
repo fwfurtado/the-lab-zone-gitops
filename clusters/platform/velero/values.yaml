@@ -21,5 +21,16 @@ velero:
           s3ForcePathStyle: "true"
           s3Url: http://10.40.1.11:3900
 
+  schedules:
+    daily-full-backup:
+      schedule: "0 3 * * *"
+      template:
+        ttl: "168h"
+        storageLocation: default
+        excludedNamespaces:
+          - kube-system
+          - kube-public
+          - kube-node-lease
+
   snapshotsEnabled: false
   deployNodeAgent: false
