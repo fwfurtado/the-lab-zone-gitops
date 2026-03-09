@@ -1,0 +1,25 @@
+velero:
+  initContainers:
+    - name: velero-plugin-for-aws
+      image: velero/velero-plugin-for-aws:v1.14.0
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /target
+          name: plugins
+
+  credentials:
+    existingSecret: velero-s3-credentials
+
+  configuration:
+    backupStorageLocation:
+      - name: default
+        provider: aws
+        bucket: velero-backups
+        default: true
+        config:
+          region: garage
+          s3ForcePathStyle: "true"
+          s3Url: http://10.40.1.11:3900
+
+  snapshotsEnabled: false
+  deployNodeAgent: false

@@ -1,0 +1,4 @@
+app:
+  name: velero
+  namespace: velero
+  syncWave: "2"
