@@ -34,3 +34,20 @@ velero:
 
   snapshotsEnabled: false
   deployNodeAgent: false
+
+vui:
+  global:
+    veleroNamespace: velero
+    clusterName: platform
+
+  auth:
+    enabled: false
+
+  exposure:
+    mode: ingress
+    ingress:
+      ingressClassName: traefik
+      spec:
+        tls:
+          - hosts:
+              - velero.platform.the-lab.zone

@@ -5,3 +5,6 @@ dependencies:
   - name: velero
     version: "11.4.0"
     repository: https://vmware-tanzu.github.io/helm-charts
+  - name: vui
+    version: "1.0.6"
+    repository: https://seriohub.github.io/velero-helm
