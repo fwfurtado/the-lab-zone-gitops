@@ -1,0 +1,7 @@
+apiVersion: v2
+name: forgejo
+version: 0.0.0
+dependencies:
+  - name: forgejo
+    version: "10.1.0"
+    repository: https://codeberg.org/forgejo-contrib/forgejo-helm

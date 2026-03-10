@@ -1,0 +1,16 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: platform-postgres
+  namespace: cloudnativepg
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instances: 3
+
+  storage:
+    size: 20Gi
+    storageClass: truenas-nfs
+
+  monitoring:
+    enablePodMonitor: true

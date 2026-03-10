@@ -1,0 +1,4 @@
+app:
+  name: reflector
+  namespace: reflector
+  syncWave: "1"

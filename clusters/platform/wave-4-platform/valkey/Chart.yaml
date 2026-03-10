@@ -1,0 +1,7 @@
+apiVersion: v2
+name: valkey
+version: 0.0.0
+dependencies:
+  - name: valkey
+    version: "2.2.2"
+    repository: https://charts.bitnami.com/bitnami

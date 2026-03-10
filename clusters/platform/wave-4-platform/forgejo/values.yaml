@@ -1,0 +1,91 @@
+forgejo:
+  postgresql-ha:
+    enabled: false
+  postgresql:
+    enabled: false
+  redis-cluster:
+    enabled: false
+  redis:
+    enabled: false
+
+  gitea:
+    config:
+      APP_NAME: "The Lab Zone"
+      server:
+        DOMAIN: git.infra.the-lab.zone
+        ROOT_URL: https://git.infra.the-lab.zone
+        SSH_DOMAIN: git.infra.the-lab.zone
+        SSH_PORT: 22
+      database:
+        DB_TYPE: postgres
+        HOST: platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
+        NAME: forgejo
+        USER: forgejo
+      cache:
+        ADAPTER: redis
+        HOST: redis://valkey-master.valkey.svc.cluster.local:6379/0
+      session:
+        PROVIDER: redis
+        PROVIDER_CONFIG: redis://valkey-master.valkey.svc.cluster.local:6379/1
+      queue:
+        TYPE: redis
+        CONN_STR: redis://valkey-master.valkey.svc.cluster.local:6379/2
+      storage:
+        STORAGE_TYPE: minio
+        MINIO_ENDPOINT: minio.minio.svc.cluster.local:9000
+        MINIO_BUCKET: forgejo
+        MINIO_USE_SSL: "false"
+      security:
+        INSTALL_LOCK: "true"
+      service:
+        DISABLE_REGISTRATION: "true"
+
+    additionalConfigFromEnvs:
+      - name: FORGEJO__database__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-credentials
+            key: db-password
+      - name: FORGEJO__storage__MINIO_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-credentials
+            key: minio-access-key
+      - name: FORGEJO__storage__MINIO_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-credentials
+            key: minio-secret-key
+      - name: FORGEJO__cache__HOST
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-credentials
+            key: redis-url
+      - name: FORGEJO__session__PROVIDER_CONFIG
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-credentials
+            key: redis-session-url
+      - name: FORGEJO__queue__CONN_STR
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-credentials
+            key: redis-queue-url
+
+  service:
+    ssh:
+      type: ClusterIP
+      port: 22
+
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: truenas-nfs
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

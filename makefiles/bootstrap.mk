@@ -34,7 +34,7 @@ bootstrap-seal-onepassword-local:
 		--from-literal=token="$$token" \
 		--dry-run=client -o yaml \
 	| kubeseal --format yaml --cert $$tmp_cert \
-	> clusters/platforms/external-secrets/templates/onepassword-credentials-sealedsecret.yaml; \
+	> clusters/platform/wave-2-infra/external-secrets/templates/onepassword-credentials-sealedsecret.yaml; \
 	rm -f $$tmp_key $$tmp_cert
 
 # Aplica apenas a Application bootstrap (root.yaml).

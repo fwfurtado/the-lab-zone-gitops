@@ -1,0 +1,4 @@
+app:
+  name: forgejo
+  namespace: forgejo
+  syncWave: "4"

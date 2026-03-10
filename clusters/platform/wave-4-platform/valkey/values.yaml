@@ -1,0 +1,25 @@
+valkey:
+  architecture: standalone
+
+  auth:
+    enabled: true
+    existingSecret: valkey-credentials
+    existingSecretPasswordKey: password
+
+  master:
+    persistence:
+      enabled: true
+      size: 2Gi
+      storageClass: truenas-nfs
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true

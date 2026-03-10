@@ -9,9 +9,10 @@ KUBECONFORM_SCHEMA_LOCATIONS ?= -schema-location default \
 	-schema-location https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/crd/bases/metallb.io_l2advertisements.yaml \
 	-schema-location https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.1/deploy/crds/bundle.yaml
 
-CHART_DIRS := $(sort $(dir $(wildcard clusters/*/*/Chart.yaml)))
+CHART_DIRS := $(sort $(dir $(wildcard clusters/*/*/*/Chart.yaml)))
 
 include makefiles/bootstrap.mk
+include makefiles/migration.mk
 include makefiles/yamllint.mk
 include makefiles/zot.mk
 

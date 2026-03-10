@@ -1,0 +1,10 @@
+zot:
+  replicaCount: 1
+
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: truenas-nfs
+
+  serviceMonitor:
+    enabled: true

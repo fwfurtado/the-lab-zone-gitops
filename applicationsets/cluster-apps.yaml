@@ -30,18 +30,20 @@ spec:
     spec:
       project: "{{ default \"default\" .app.project }}"
       ignoreDifferences:
-        # ExternalSecret status is updated by ESO; avoid perpetual out-of-sync
         - group: external-secrets.io
           kind: ExternalSecret
           jsonPointers:
             - /status
-        # StatefulSet volumeClaimTemplates: API adds status, apiVersion, kind; Helm omits them
         - group: apps
           kind: StatefulSet
           jqPathExpressions:
             - .spec.volumeClaimTemplates[].status
             - .spec.volumeClaimTemplates[].apiVersion
             - .spec.volumeClaimTemplates[].kind
+        - group: cert-manager.io
+          kind: Certificate
+          jsonPointers:
+            - /status
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
         targetRevision: main

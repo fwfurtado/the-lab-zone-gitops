@@ -1,0 +1,4 @@
+app:
+  name: minio
+  namespace: minio
+  syncWave: "4"

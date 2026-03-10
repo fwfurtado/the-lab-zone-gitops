@@ -1,0 +1,28 @@
+apiVersion: v2
+name: monitoring
+version: 0.0.0
+description: >-
+  Full Victoria observability stack for The Lab Zone.
+  Metrics (VMSingle + VMAgent), logs (VLogs + collector), traces (VictoriaTraces).
+  Includes kube-state-metrics and prometheus-node-exporter.
+  Requires prometheus-operator-crds to be installed first (wave 0).
+dependencies:
+  - name: victoria-metrics-k8s-stack
+    alias: stack
+    version: "0.72.4"
+    repository: https://victoriametrics.github.io/helm-charts/
+
+  - name: victoria-logs-single
+    alias: vlogs
+    version: "0.11.26"
+    repository: https://victoriametrics.github.io/helm-charts/
+
+  - name: victoria-logs-collector
+    alias: log-collector
+    version: "0.2.9"
+    repository: https://victoriametrics.github.io/helm-charts/
+
+  - name: victoria-traces-single
+    alias: vtraces
+    version: "0.0.6"
+    repository: https://victoriametrics.github.io/helm-charts/

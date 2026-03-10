@@ -1,0 +1,4 @@
+app:
+  name: zot
+  namespace: zot
+  syncWave: "4"

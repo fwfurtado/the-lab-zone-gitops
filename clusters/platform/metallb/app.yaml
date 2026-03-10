@@ -1,4 +1,0 @@
-app:
-  name: metallb
-  namespace: metallb-system
-  syncWave: "1"

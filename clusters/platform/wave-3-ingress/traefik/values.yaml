@@ -1,0 +1,66 @@
+traefik:
+  deployment:
+    replicas: 2
+
+  service:
+    type: LoadBalancer
+    annotations:
+      metallb.universe.tf/loadBalancerIPs: "10.40.2.1"
+      metallb.universe.tf/address-pool: platform-infra-pool
+
+  ports:
+    web:
+      port: 8000
+      exposedPort: 80
+      redirectTo:
+        port: websecure
+    websecure:
+      port: 8443
+      exposedPort: 443
+      tls:
+        enabled: true
+    ssh:
+      port: 2222
+      exposedPort: 22
+      protocol: TCP
+      expose:
+        default: true
+
+  providers:
+    kubernetesCRD:
+      enabled: true
+      allowCrossNamespace: true
+    kubernetesIngress:
+      enabled: true
+      allowEmptyServices: true
+
+  ingressRoute:
+    dashboard:
+      enabled: false
+
+  logs:
+    general:
+      level: INFO
+      format: json
+    access:
+      enabled: true
+
+  tracing:
+    otlp:
+      http:
+        endpoint: http://vtraces.monitoring.svc.cluster.local:10428/insert/opentelemetry/v1/traces
+
+  metrics:
+    prometheus:
+      service:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi

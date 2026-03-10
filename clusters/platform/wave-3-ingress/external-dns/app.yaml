@@ -1,0 +1,4 @@
+app:
+  name: external-dns
+  namespace: external-dns
+  syncWave: "3"

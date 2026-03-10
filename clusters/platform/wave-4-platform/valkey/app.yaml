@@ -1,0 +1,4 @@
+app:
+  name: valkey
+  namespace: valkey
+  syncWave: "4"

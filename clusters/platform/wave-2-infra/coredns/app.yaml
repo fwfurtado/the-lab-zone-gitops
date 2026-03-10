@@ -1,0 +1,4 @@
+app:
+  name: coredns
+  namespace: dns
+  syncWave: "2"

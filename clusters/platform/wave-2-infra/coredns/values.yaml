@@ -1,0 +1,41 @@
+coredns:
+  replicaCount: 2
+
+  service:
+    type: LoadBalancer
+    annotations:
+      metallb.universe.tf/loadBalancerIPs: "10.40.2.2"
+      metallb.universe.tf/address-pool: platform-infra-pool
+
+  serviceMonitor:
+    enabled: true
+
+  servers:
+    - zones:
+        - zone: the-lab.zone.
+      port: 53
+      plugins:
+        - name: errors
+        - name: log
+        - name: file
+          parameters: /etc/coredns/zones/the-lab.zone
+          configBlock: |-
+            reload 30s
+    - zones:
+        - zone: .
+      port: 53
+      plugins:
+        - name: errors
+        - name: forward
+          parameters: ". 1.1.1.1 1.0.0.1"
+        - name: cache
+          parameters: "30"
+        - name: log
+
+  extraVolumes:
+    - name: zone-file
+      configMap:
+        name: coredns-zone
+  extraVolumeMounts:
+    - name: zone-file
+      mountPath: /etc/coredns/zones

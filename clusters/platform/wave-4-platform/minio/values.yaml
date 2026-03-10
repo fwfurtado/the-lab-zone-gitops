@@ -1,0 +1,35 @@
+minio:
+  mode: standalone
+
+  existingSecret: minio-credentials
+
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: truenas-nfs
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  buckets:
+    - name: forgejo
+      policy: none
+      purge: false
+    - name: velero
+      policy: none
+      purge: false
+    - name: postgres-backups
+      policy: none
+      purge: false
+
+  consoleIngress:
+    enabled: false
+
+  metrics:
+    serviceMonitor:
+      enabled: true

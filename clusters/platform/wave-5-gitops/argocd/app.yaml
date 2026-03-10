@@ -1,0 +1,5 @@
+app:
+  name: argocd
+  namespace: argocd
+  syncWave: "5"
+  releaseName: argocd

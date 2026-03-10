@@ -1,0 +1,164 @@
+# =============================================================================
+# victoria-metrics-k8s-stack
+# Includes: operator, VMSingle, VMAgent, kube-state-metrics, node-exporter,
+# default scrape rules and Grafana dashboards (as ConfigMaps).
+# =============================================================================
+stack:
+  fullnameOverride: vm-stack
+  argocdReleaseOverride: "monitoring"
+
+  # Grafana is managed separately in wave-4-platform/grafana
+  grafana:
+    enabled: false
+
+  # Dashboards as ConfigMaps (consumed by Grafana sidecar in wave 4)
+  defaultDashboards:
+    enabled: true
+
+  defaultRules:
+    create: true
+
+  # ---------------------------------------------------------------------------
+  # Operator
+  # ---------------------------------------------------------------------------
+  victoria-metrics-operator:
+    crds:
+      plain: false
+      cleanup:
+        enabled: true
+        image:
+          repository: rancher/kubectl
+          pullPolicy: IfNotPresent
+    admissionWebhooks:
+      enabled: false
+    operator:
+      disable_prometheus_converter: false
+      enable_converter_ownership: true
+    serviceMonitor:
+      enabled: true
+    resources:
+      requests:
+        cpu: 80m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+  # ---------------------------------------------------------------------------
+  # VMSingle — in-cluster metrics storage (replaces TrueNAS VMsingle)
+  # ---------------------------------------------------------------------------
+  vmsingle:
+    enabled: true
+    spec:
+      retentionPeriod: "14d"
+      extraArgs: {}
+      storage:
+        storageClassName: truenas-nfs
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1536Mi
+
+  # ---------------------------------------------------------------------------
+  # VMAgent — scrapes metrics and writes to VMSingle
+  # ---------------------------------------------------------------------------
+  vmagent:
+    enabled: true
+    spec:
+      selectAllByDefault: true
+      scrapeInterval: 25s
+      externalLabels:
+        runs-on: k8s
+        cluster: platform
+      extraArgs:
+        promscrape.streamParse: "true"
+        promscrape.dropOriginalLabels: "true"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  # Alerting — disabled for now, enable later
+  vmalert:
+    enabled: false
+  alertmanager:
+    enabled: false
+
+  # Sub-charts
+  kube-state-metrics:
+    enabled: true
+  prometheus-node-exporter:
+    enabled: true
+
+# =============================================================================
+# VictoriaLogs Single — in-cluster log storage (replaces TrueNAS VLogsSingle)
+# =============================================================================
+vlogs:
+  server:
+    fullnameOverride: vlogs
+    retentionPeriod: "7d"
+    persistentVolume:
+      enabled: true
+      size: 20Gi
+      storageClassName: truenas-nfs
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    vmServiceScrape:
+      enabled: true
+
+# =============================================================================
+# VictoriaLogs Collector (DaemonSet) — ships logs to in-cluster VLogs
+# =============================================================================
+log-collector:
+  remoteWrite:
+    - url: http://vlogs.monitoring.svc.cluster.local:9428
+
+  extraArgs:
+    remoteWrite.headers: "VL-Extra-Fields: cluster=platform"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# =============================================================================
+# VictoriaTraces Single — in-cluster trace storage
+# Accepts OTLP at :10428/insert/opentelemetry/v1/traces
+# Serves Jaeger-compatible API for Grafana queries
+# =============================================================================
+vtraces:
+  server:
+    fullnameOverride: vtraces
+    retentionPeriod: "7d"
+    persistentVolume:
+      enabled: true
+      size: 10Gi
+      storageClassName: truenas-nfs
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    vmServiceScrape:
+      enabled: true
