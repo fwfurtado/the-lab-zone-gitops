@@ -8,6 +8,9 @@ external-dns:
     - traefik-proxy
     - crd
 
+  extraArgs:
+    - --traefik-disable-legacy
+
   domainFilters:
     - the-lab.zone
 

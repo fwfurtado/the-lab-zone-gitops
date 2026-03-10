@@ -21,7 +21,7 @@ data:
     ; Physical infrastructure
     proxmox IN A   10.40.0.200
     nas     IN A   10.40.0.4
-    ha      IN A   10.40.0.x   ; TODO: replace with actual Home Assistant IP
+    ; ha      IN A   10.40.0.x   ; TODO: replace with actual Home Assistant IP
 
     ; Cluster service wildcards — Traefik handles routing via IngressRoute
     *.platform  IN A   10.40.2.1
