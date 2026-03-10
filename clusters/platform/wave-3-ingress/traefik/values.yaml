@@ -12,13 +12,17 @@ traefik:
     web:
       port: 8000
       exposedPort: 80
-      redirectTo:
-        port: websecure
+      http:
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
     websecure:
       port: 8443
       exposedPort: 443
-      tls:
-        enabled: true
+      http:
+        tls:
+          enabled: true
     ssh:
       port: 2222
       exposedPort: 22

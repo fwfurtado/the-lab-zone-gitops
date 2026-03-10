@@ -16,7 +16,7 @@ spec:
           # Generator 2: every subdirectory under clusters/<cluster-name>/
           - git:
               repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
-              revision: main
+              revision: feat/migration
               files:
                 - path: "clusters/{{.name}}/**/app.yaml"
   template:
@@ -46,7 +46,7 @@ spec:
             - /status
       source:
         repoURL: https://github.com/fwfurtado/the-lab-zone-gitops
-        targetRevision: main
+        targetRevision: feat/migration
         path: "{{.path.path}}"
         helm:
           releaseName: "{{ default .app.name .app.releaseName }}"

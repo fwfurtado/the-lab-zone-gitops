@@ -4,6 +4,7 @@ authelia:
   secret:
     existingSecret: authelia-secrets
     additionalSecrets:
+      authelia-secrets: {}
       authelia-oidc-jwks:
         items:
           - key: private.pem
