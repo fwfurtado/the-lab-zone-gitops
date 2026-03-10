@@ -1,10 +1,11 @@
 zot:
   replicaCount: 1
 
-  persistence:
-    enabled: true
-    size: 50Gi
-    storageClass: truenas-nfs
+  persistence: true
+  pvc:
+    create: true
+    storage: 50Gi
+    storageClassName: truenas-nfs
 
   serviceMonitor:
     enabled: true
