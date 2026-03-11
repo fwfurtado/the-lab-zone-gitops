@@ -32,6 +32,7 @@ authelia:
       password_reset:
         disable: false
       file:
+        enabled: true
         path: /config/users.yaml
         password:
           algorithm: bcrypt
@@ -73,6 +74,7 @@ authelia:
           authelia_url: https://auth.infra.the-lab.zone
           default_redirection_url: https://auth.infra.the-lab.zone
       redis:
+        enabled: true
         host: valkey-master.valkey.svc.cluster.local
         port: 6379
         database_index: 0
@@ -81,6 +83,7 @@ authelia:
 
     storage:
       postgres:
+        enabled: true
         address: tcp://platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
         database: authelia
         username: authelia
@@ -90,6 +93,7 @@ authelia:
     notifier:
       disable_startup_check: false
       filesystem:
+        enabled: true
         filename: /tmp/authelia-notifications.log
 
     identity_providers:
