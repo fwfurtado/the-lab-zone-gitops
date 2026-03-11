@@ -3,5 +3,5 @@ name: infisical
 version: 0.0.0
 dependencies:
   - name: infisical-standalone
-    version: "1.0.4"
+    version: "1.7.3"
     repository: https://dl.cloudsmith.io/public/infisical/helm-charts/helm/charts/
