@@ -163,19 +163,26 @@ authelia:
               - groups
             userinfo_signed_response_alg: none
 
-  # TODO: replace bcrypt hash with real value
-  # Generate with: htpasswd -nbBC 12 "" password | tr -d ':\n' | sed 's/$2y/$2b/'
+  # Users loaded from ExternalSecret (authelia-users) via Infisical key authelia-users-yaml.
+  # In Infisical, create secret "authelia-users-yaml" with full users.yaml content, e.g.:
+  #   users:
+  #     fwfurtado:
+  #       displayname: Felipe
+  #       password: "$2b$12$..."  # htpasswd -nbBC 12 "" yourpassword | tr -d ':\n' | sed 's/$2y/$2b/'
+  #       email: fwfurtado@gmail.com
+  #       groups: [sre, admins]
   userDatabase:
-    enabled: true
-    content:
-      users:
-        fwfurtado:
-          displayname: Felipe
-          password: "$2b$12$REPLACE_WITH_REAL_BCRYPT_HASH"
-          email: fwfurtado@gmail.com
-          groups:
-            - sre
-            - admins
+    enabled: false
+
+  pod:
+    extraVolumes:
+      - name: authelia-users
+        secret:
+          secretName: authelia-users
+    extraVolumeMounts:
+      - name: authelia-users
+        mountPath: /config/users.yaml
+        subPath: users.yaml
 
   persistence:
     enabled: false
