@@ -26,6 +26,9 @@ minio:
     - name: postgres-backups
       policy: none
       purge: false
+    - name: assets
+      policy: none
+      purge: false
 
   consoleIngress:
     enabled: false
