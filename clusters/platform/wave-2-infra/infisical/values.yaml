@@ -23,6 +23,10 @@ infisical-standalone:
   postgresql:
     enabled: true
     fullnameOverride: infisical-postgresql
+    image:
+      registry: docker.io
+      repository: bitnami/postgresql
+      tag: "16"  # 16.2.0-debian-11-r17 was removed; use rolling tag
     primary:
       persistence:
         size: 8Gi
@@ -35,6 +39,10 @@ infisical-standalone:
   redis:
     enabled: true
     fullnameOverride: infisical-redis
+    image:
+      registry: docker.io
+      repository: bitnami/redis
+      tag: "7.2"  # 7.2.4-debian-11-r5 may be removed; use rolling tag
     architecture: standalone
     master:
       persistence:
