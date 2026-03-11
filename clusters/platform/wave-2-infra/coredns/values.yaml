@@ -1,8 +1,9 @@
 coredns:
   replicaCount: 2
 
+  serviceType: "LoadBalancer"
+
   service:
-    type: LoadBalancer
     annotations:
       metallb.universe.tf/loadBalancerIPs: "10.40.2.2"
       metallb.universe.tf/address-pool: platform-infra-pool
