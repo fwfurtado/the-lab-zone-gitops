@@ -1,0 +1,17 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: wildcard-records
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpoints:
+    - dnsName: "*.infra.the-lab.zone"
+      recordTTL: 300
+      recordType: A
+      targets:
+        - "10.40.2.1"
+    - dnsName: "*.platform.the-lab.zone"
+      recordTTL: 300
+      recordType: A
+      targets:
+        - "10.40.2.1"
