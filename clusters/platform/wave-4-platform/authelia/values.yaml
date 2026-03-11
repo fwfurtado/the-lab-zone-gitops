@@ -4,7 +4,6 @@ authelia:
   secret:
     existingSecret: authelia-secrets
     additionalSecrets:
-      authelia-secrets: {}
       authelia-oidc-jwks:
         items:
           - key: private.pem
@@ -79,16 +78,12 @@ authelia:
         database_index: 0
         maximum_active_connections: 8
         minimum_idle_connections: 0
-        password:
-          path: /secrets/authelia-secrets/AUTHELIA_SESSION_REDIS_PASSWORD
 
     storage:
       postgres:
         address: tcp://platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
         database: authelia
         username: authelia
-        password:
-          path: /secrets/authelia-secrets/AUTHELIA_STORAGE_POSTGRES_PASSWORD
         tls:
           skip_verify: true
 
@@ -99,8 +94,6 @@ authelia:
 
     identity_providers:
       oidc:
-        hmac_secret:
-          path: /secrets/authelia-secrets/AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET
         jwks:
           - key_id: main
             algorithm: RS256
