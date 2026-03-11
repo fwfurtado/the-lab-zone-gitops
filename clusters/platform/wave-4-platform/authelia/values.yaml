@@ -77,7 +77,6 @@ authelia:
       cookies:
         - domain: the-lab.zone
           subdomain: auth.infra
-          default_redirection_url: https://auth.infra.the-lab.zone
       redis:
         enabled: true
         host: valkey-primary.valkey.svc.cluster.local
