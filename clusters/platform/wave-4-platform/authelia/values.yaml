@@ -120,6 +120,7 @@ authelia:
         clients:
           - client_id: argocd
             client_name: ArgoCD
+            consent_mode: implicit
             client_secret:
               path: /secrets/authelia-oidc-clients/AUTHELIA_OIDC_CLIENT_ARGOCD_SECRET
             public: false
@@ -135,6 +136,7 @@ authelia:
 
           - client_id: grafana
             client_name: Grafana
+            consent_mode: implicit
             client_secret:
               path: /secrets/authelia-oidc-clients/AUTHELIA_OIDC_CLIENT_GRAFANA_SECRET
             public: false
@@ -150,6 +152,7 @@ authelia:
 
           - client_id: forgejo
             client_name: Forgejo
+            consent_mode: implicit
             client_secret:
               path: /secrets/authelia-oidc-clients/AUTHELIA_OIDC_CLIENT_FORGEJO_SECRET
             public: false
