@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: minio-console
+  namespace: minio
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`minio.infra.the-lab.zone`)
+      kind: Rule
+      services:
+        - name: minio-console
+          port: 9001
+  tls:
+    secretName: infra-wildcard-tls
