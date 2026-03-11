@@ -23,13 +23,13 @@ forgejo:
         USER: forgejo
       cache:
         ADAPTER: redis
-        HOST: redis://valkey-master.valkey.svc.cluster.local:6379/0
+        HOST: redis://valkey-primary.valkey.svc.cluster.local:6379/0
       session:
         PROVIDER: redis
-        PROVIDER_CONFIG: redis://valkey-master.valkey.svc.cluster.local:6379/1
+        PROVIDER_CONFIG: redis://valkey-primary.valkey.svc.cluster.local:6379/1
       queue:
         TYPE: redis
-        CONN_STR: redis://valkey-master.valkey.svc.cluster.local:6379/2
+        CONN_STR: redis://valkey-primary.valkey.svc.cluster.local:6379/2
       storage:
         STORAGE_TYPE: minio
         MINIO_ENDPOINT: minio.minio.svc.cluster.local:9000
