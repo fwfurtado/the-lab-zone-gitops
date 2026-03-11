@@ -8,6 +8,15 @@ argo-cd:
     cm:
       admin.enabled: true
       url: https://argocd.platform.the-lab.zone
+      # Permite sync de Endpoints customizados (ex: external-services no Traefik).
+      # Por padrão ArgoCD 3.x exclui Endpoints; mantemos só EndpointSlice excluído.
+      resource.exclusions: |
+        - apiGroups:
+            - discovery.k8s.io
+          kinds:
+            - EndpointSlice
+          clusters:
+            - "*"
       dex.config: |
         connectors:
           - type: oidc
