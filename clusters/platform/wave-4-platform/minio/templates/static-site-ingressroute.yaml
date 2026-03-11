@@ -1,0 +1,30 @@
+# Middlewares para servir site estático do bucket MinIO:
+# - bucket-prefix: adiciona nome do bucket ao path (ex: / -> /assets/)
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: minio-assets-bucket-prefix
+  namespace: minio
+spec:
+  addPrefix:
+    prefix: "assets/"
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: minio-assets-ingressroute
+  namespace: minio
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`assets.infra.the-lab.zone`)
+      kind: Rule
+      middlewares:
+        - name: minio-assets-bucket-prefix
+      services:
+        - name: minio
+          port: 9000
+  tls:
+    secretName: infra-wildcard-tls

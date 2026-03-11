@@ -27,7 +27,7 @@ minio:
       policy: none
       purge: false
     - name: assets
-      policy: none
+      policy: download
       purge: false
 
   consoleIngress:
