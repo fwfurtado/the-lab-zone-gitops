@@ -1,0 +1,59 @@
+# Proxies para serviços externos (Proxmox, TrueNAS, Home Assistant, etc).
+# Adicione itens em externalServices para criar novos proxies.
+# DNS: wildcard *.infra.the-lab.zone já aponta para Traefik (10.40.2.1).
+{{- if .Values.externalServices }}
+---
+apiVersion: v1
+kind: ServersTransport
+metadata:
+  name: external-https-skip-verify
+  namespace: traefik
+spec:
+  insecureSkipVerify: true
+{{- range .Values.externalServices }}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ .name }}-external
+  namespace: traefik
+subsets:
+  - addresses:
+      - ip: {{ .ip | quote }}
+    ports:
+      - port: {{ .port }}
+        name: {{ .scheme | default "https" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}-external
+  namespace: traefik
+spec:
+  ports:
+    - port: {{ .port }}
+      targetPort: {{ .port }}
+      name: {{ .scheme | default "https" }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .name }}-external
+  namespace: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{ .host }}`)
+      kind: Rule
+      services:
+        - name: {{ .name }}-external
+          port: {{ .port }}
+          scheme: {{ .scheme | default "https" }}
+          {{- if eq (.scheme | default "https") "https" }}
+          serversTransport: external-https-skip-verify
+          {{- end }}
+  tls:
+    secretName: infra-wildcard-tls
+{{- end }}
+{{- end }}
