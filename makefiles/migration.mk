@@ -122,10 +122,14 @@ migration-validate-wave2:
 	dig +short @10.40.2.2 nas.the-lab.zone || echo "  FAILED"; \
 	echo "--- DNS resolution: argocd.platform.the-lab.zone"; \
 	dig +short @10.40.2.2 argocd.platform.the-lab.zone || echo "  FAILED"; \
+	echo "--- Infisical pods"; \
+	$(KUBECTL) get pods -n infisical --no-headers; \
+	echo "--- Infisical HTTPS"; \
+	curl -sk https://infisical.infra.the-lab.zone -o /dev/null -w "  status: %{http_code}\n" 2>/dev/null || echo "  FAILED (may need DNS)"; \
 	echo "--- External Secrets operator"; \
 	$(KUBECTL) get pods -n external-secrets --no-headers; \
 	echo "--- ClusterSecretStore"; \
-	$(KUBECTL) get clustersecretstore onepassword; \
+	$(KUBECTL) get clustersecretstore infisical; \
 	echo "--- Democratic CSI"; \
 	$(KUBECTL) get pods -n democratic-csi --no-headers; \
 	echo "--- StorageClass"; \

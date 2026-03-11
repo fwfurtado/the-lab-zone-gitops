@@ -18,7 +18,9 @@ include makefiles/zot.mk
 
 .PHONY: template validate clean yamllint bootstrap
 
-# Aplica o Secret do repositório, a chave do Sealed Secrets, configura o cluster e aplica o bootstrap/root.yaml.
+# Aplica o Secret do repositório, a chave do Sealed Secrets e aplica o bootstrap/root.yaml.
+# Após o bootstrap, execute `make bootstrap-seal-infisical-secrets` e depois
+# `make bootstrap-seal-infisical-credentials` (após configurar o Infisical).
 bootstrap: bootstrap-secrets bootstrap-sealed-secrets-key bootstrap-app
 
 template:
