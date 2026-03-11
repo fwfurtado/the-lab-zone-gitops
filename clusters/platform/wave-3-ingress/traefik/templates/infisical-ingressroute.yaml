@@ -10,7 +10,7 @@ spec:
     - match: Host(`infisical.infra.the-lab.zone`)
       kind: Rule
       services:
-        - name: infisical
+        - name: infisical-infisical-standalone-infisical
           port: 8080
   tls:
     secretName: infra-wildcard-tls
