@@ -1,0 +1,44 @@
+infisical-standalone:
+  infisical:
+    enabled: true
+    kubeSecretRef: infisical-secrets
+    replicaCount: 1
+    image:
+      tag: "v0.151.0"
+    resources:
+      requests:
+        cpu: 350m
+        memory: 512Mi
+      limits:
+        memory: 1000Mi
+
+  ingress:
+    enabled: false
+    nginx:
+      enabled: false
+
+  ingress-nginx:
+    enabled: false
+
+  postgresql:
+    enabled: true
+    fullnameOverride: infisical-postgresql
+    primary:
+      persistence:
+        size: 8Gi
+        storageClass: truenas-nfs
+    auth:
+      username: infisical
+      password: infisical
+      database: infisicalDB
+
+  redis:
+    enabled: true
+    fullnameOverride: infisical-redis
+    architecture: standalone
+    master:
+      persistence:
+        size: 2Gi
+        storageClass: truenas-nfs
+    auth:
+      password: infisical-redis
