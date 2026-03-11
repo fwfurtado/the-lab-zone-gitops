@@ -34,7 +34,8 @@ infisical-standalone:
 
   redis:
     enabled: true
-    fullnameOverride: infisical-redis
+    # fullnameOverride must be "redis" so the service is redis-master (chart expects it)
+    fullnameOverride: redis
     architecture: standalone
     master:
       persistence:
