@@ -19,7 +19,7 @@ spec:
         - name: hbbs
           image: rustdesk/rustdesk-server:latest
           command: ["hbbs"]
-          args: ["-r", "rustdesk.the-lab.zone:21117"]
+          args: ["-r", "rustdesk-tcp.rustdesk.svc.cluster.local:21117"]
           ports:
             - name: nat-test
               containerPort: 21115
