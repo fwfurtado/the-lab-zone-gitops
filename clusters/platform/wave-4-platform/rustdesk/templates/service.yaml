@@ -8,6 +8,7 @@ metadata:
   annotations:
     metallb.universe.tf/loadBalancerIPs: "10.40.2.10"
     metallb.universe.tf/address-pool: platform-infra-pool
+    metallb.universe.tf/allow-shared-ip: "rustdesk"
 spec:
   type: LoadBalancer
   selector:
@@ -46,6 +47,7 @@ metadata:
   annotations:
     metallb.universe.tf/loadBalancerIPs: "10.40.2.10"
     metallb.universe.tf/address-pool: platform-infra-pool
+    metallb.universe.tf/allow-shared-ip: "rustdesk"
 spec:
   type: LoadBalancer
   selector:
