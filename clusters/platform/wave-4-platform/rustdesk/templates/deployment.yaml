@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rustdesk
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: rustdesk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rustdesk
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rustdesk
+    spec:
+      containers:
+        - name: hbbs
+          image: rustdesk/rustdesk-server:latest
+          command: ["hbbs"]
+          args: ["-r", "rustdesk.the-lab.zone:21117"]
+          ports:
+            - name: nat-test
+              containerPort: 21115
+              protocol: TCP
+            - name: id-server
+              containerPort: 21116
+              protocol: TCP
+            - name: id-server-udp
+              containerPort: 21116
+              protocol: UDP
+            - name: hbbs-ws
+              containerPort: 21118
+              protocol: TCP
+          volumeMounts:
+            - name: keypair
+              mountPath: /root/id_ed25519
+              subPath: id_ed25519
+              readOnly: true
+            - name: keypair
+              mountPath: /root/id_ed25519.pub
+              subPath: id_ed25519.pub
+              readOnly: true
+        - name: hbbr
+          image: rustdesk/rustdesk-server:latest
+          command: ["hbbr"]
+          ports:
+            - name: relay
+              containerPort: 21117
+              protocol: TCP
+            - name: hbbr-ws
+              containerPort: 21119
+              protocol: TCP
+          volumeMounts:
+            - name: keypair
+              mountPath: /root/id_ed25519
+              subPath: id_ed25519
+              readOnly: true
+            - name: keypair
+              mountPath: /root/id_ed25519.pub
+              subPath: id_ed25519.pub
+              readOnly: true
+      volumes:
+        - name: keypair
+          secret:
+            secretName: rustdesk-keypair
+            defaultMode: 0600

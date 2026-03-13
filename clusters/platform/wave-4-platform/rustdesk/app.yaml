@@ -1,0 +1,4 @@
+app:
+  name: rustdesk
+  namespace: rustdesk
+  syncWave: "4"

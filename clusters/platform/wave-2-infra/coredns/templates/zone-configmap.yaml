@@ -19,10 +19,10 @@ data:
     dns     IN A   10.40.2.2
 
     ; Physical infrastructure
-    proxmox IN A   10.40.0.200
-    nas     IN A   10.40.0.4
-    haos    IN A   192.168.20.2
-
+    proxmox  IN A   10.40.0.200
+    nas      IN A   10.40.0.4
+    haos     IN A   192.168.20.2
+    rustdesk IN A   10.40.2.10
     ; Cluster service wildcards — Traefik handles routing via IngressRoute
     *.platform  IN A   10.40.2.1
     *.infra     IN A   10.40.2.1

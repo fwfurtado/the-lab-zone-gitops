@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rustdesk-tcp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: rustdesk
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "10.40.2.10"
+    metallb.universe.tf/address-pool: platform-infra-pool
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: rustdesk
+  ports:
+    - name: nat-test
+      port: 21115
+      targetPort: nat-test
+      protocol: TCP
+    - name: id-server
+      port: 21116
+      targetPort: id-server
+      protocol: TCP
+    - name: relay
+      port: 21117
+      targetPort: relay
+      protocol: TCP
+    - name: hbbs-ws
+      port: 21118
+      targetPort: hbbs-ws
+      protocol: TCP
+    - name: hbbr-ws
+      port: 21119
+      targetPort: hbbr-ws
+      protocol: TCP
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rustdesk-udp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: rustdesk
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "10.40.2.10"
+    metallb.universe.tf/address-pool: platform-infra-pool
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: rustdesk
+  ports:
+    - name: id-server-udp
+      port: 21116
+      targetPort: id-server-udp
+      protocol: UDP
