@@ -1,0 +1,4 @@
+app:
+  name: proxmox-csi
+  namespace: csi-proxmox
+  syncWave: "2"

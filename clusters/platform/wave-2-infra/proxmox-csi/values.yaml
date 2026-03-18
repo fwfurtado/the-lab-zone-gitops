@@ -1,0 +1,16 @@
+proxmox-csi-plugin:
+  # Cluster credentials come from Secret "proxmox-csi-config",
+  # synced by ESO from Infisical (see templates/proxmox-csi-config-external-secret.yaml).
+  existingConfigSecret: proxmox-csi-config
+
+  storageClasses:
+    - name: proxmox-lvm
+      defaultClass: false
+      reclaimPolicy: Retain
+      volumeBindingMode: WaitForFirstConsumer
+      allowVolumeExpansion: true
+      parameters:
+        storage: local-lvm
+        fstype: ext4
+        cache: none
+        ssd: "true"

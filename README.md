@@ -43,8 +43,8 @@ The homelab follows a split architecture: **stateless platform services** run in
 │                                                              │
 │  wave 0: cilium, prometheus-operator-crds                    │
 │  wave 1: metallb, sealed-secrets                             │
-│  wave 2: democratic-csi, external-secrets, monitoring,       │
-│          traefik                                             │
+│  wave 2: democratic-csi, proxmox-csi, external-secrets,      │
+│          monitoring, traefik                                 │
 │  wave 3: argocd                                              │
 └──────────────────────────────────────────────────────────────┘
 
@@ -75,6 +75,7 @@ The homelab follows a split architecture: **stateless platform services** run in
 │       ├── argocd/
 │       ├── cilium/
 │       ├── democratic-csi/
+│       ├── proxmox-csi/
 │       ├── external-secrets/
 │       ├── metallb/
 │       ├── monitoring/
@@ -99,7 +100,8 @@ The homelab follows a split architecture: **stateless platform services** run in
 | **Prometheus Operator CRDs** | `prometheus-operator-crds` | ServiceMonitor / PodMonitor CRDs for metrics |
 | **MetalLB** | `metallb-system` | Bare-metal LoadBalancer (L2 mode) |
 | **Sealed Secrets** | `sealed-secrets` | Encrypt secrets for safe Git storage + UI |
-| **Democratic-CSI** | `democratic-csi` | CSI driver for TrueNAS NFS provisioning |
+| **Democratic-CSI** | `democratic-csi` | CSI driver for TrueNAS NFS provisioning (migrating to Proxmox CSI) |
+| **Proxmox CSI** | `csi-proxmox` | CSI driver for Proxmox LVM block storage |
 | **External Secrets** | `external-secrets` | Sync secrets from 1Password into Kubernetes |
 | **Monitoring** | `monitoring` | VictoriaMetrics Operator + VictoriaLogs Collector; ships metrics and logs to TrueNAS |
 | **Traefik** | `traefik` | In-cluster ingress controller & reverse proxy |
@@ -113,7 +115,7 @@ Applications are deployed in a specific order using ArgoCD sync waves to respect
 |---|---|---|
 | **0** | Cilium, Prometheus Operator CRDs | Core networking & CRD foundations |
 | **1** | MetalLB, Sealed Secrets | LoadBalancer IPs & secret encryption |
-| **2** | Democratic-CSI, External Secrets, Monitoring, Traefik | Storage, secrets sync, observability & ingress |
+| **2** | Democratic-CSI, Proxmox CSI, External Secrets, Monitoring, Traefik | Storage, secrets sync, observability & ingress |
 | **3** | ArgoCD | GitOps platform (needs Traefik ingress, External Secrets for repo creds) |
 
 ## Bootstrap
@@ -220,7 +222,7 @@ Secrets are managed through a layered approach:
 
 **Flow:** 1Password → External Secrets Operator → Kubernetes Secrets
 
-Applications that use ExternalSecrets: Democratic-CSI (TrueNAS driver config).
+Applications that use ExternalSecrets: Democratic-CSI (TrueNAS driver config), Proxmox CSI (Proxmox API credentials).
 
 ## Networking
 
@@ -250,8 +252,8 @@ External requests hit the Traefik LXC container (`10.40.0.50`), which terminates
 
 | Component | Details |
 |---|---|
-| **CSI Driver** | Democratic-CSI with TrueNAS NFS backend |
-| **Default StorageClass** | `truenas-nfs` (Retain policy, immediate binding) |
+| **CSI Drivers** | Democratic-CSI (TrueNAS NFS, default) + Proxmox CSI Plugin (LVM block, migration target) |
+| **Default StorageClass** | `truenas-nfs` (Retain policy, immediate binding) — migrating to `proxmox-lvm` |
 
 ## Observability
 
