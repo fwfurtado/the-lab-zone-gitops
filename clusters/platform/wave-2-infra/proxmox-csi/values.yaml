@@ -10,7 +10,7 @@ proxmox-csi-plugin:
       volumeBindingMode: WaitForFirstConsumer
       allowVolumeExpansion: true
       parameters:
-        storage: local-lvm
+        storage: local-ssd
         fstype: ext4
         cache: none
         ssd: "true"
