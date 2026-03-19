@@ -78,6 +78,11 @@ stack:
       externalLabels:
         runs-on: k8s
         cluster: platform
+      inlineRelabelConfig:
+        - sourceLabels: [exported_cluster]
+          targetLabel: cluster
+          regex: ".+"
+          action: replace
       extraArgs:
         promscrape.streamParse: "true"
         promscrape.dropOriginalLabels: "true"

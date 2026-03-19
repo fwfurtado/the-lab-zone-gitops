@@ -28,7 +28,3 @@ spec:
 
   monitoring:
     enablePodMonitor: true
-    podMonitorMetricRelabelings:
-      - sourceLabels: [exported_cluster]
-        targetLabel: cluster
-        action: replace
