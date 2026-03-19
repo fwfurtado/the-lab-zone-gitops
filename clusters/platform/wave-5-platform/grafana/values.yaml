@@ -11,6 +11,7 @@ grafana:
       enabled: true
       label: grafana_dashboard
       labelValue: "1"
+      searchNamespace: ALL
       provider:
         name: default
         folder: /var/lib/grafana/dashboards
