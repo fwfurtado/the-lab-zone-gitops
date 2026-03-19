@@ -12,10 +12,10 @@ grafana:
       label: grafana_dashboard
       labelValue: "1"
       searchNamespace: ALL
+      skipReload: true
       provider:
         name: default
-        folder: /var/lib/grafana/dashboards
-        defaultFolderName: default
+        foldersFromFilesStructure: false
 
   persistence:
     enabled: true
@@ -30,7 +30,7 @@ grafana:
       root_url: https://grafana.infra.the-lab.zone
     auth:
       signout_redirect_url: https://auth.infra.the-lab.zone/logout
-      oauth_auto_login: true
+      oauth_auto_login: false
     auth.generic_oauth:
       enabled: true
       name: Authelia
