@@ -23,7 +23,7 @@ All cluster state is declared in this repo. ArgoCD watches the `main` branch and
 
 ## Architecture Overview
 
-The homelab follows a split architecture: **stateless platform services** run inside a Talos Kubernetes cluster on Proxmox, while **stateful applications** (Gitea, Authentik, Grafana, Victoria Metrics/Logs, Garage, etc.) run as Docker containers on TrueNAS. Infrastructure services (Traefik, Tailscale) run as LXC containers on Proxmox, outside the cluster.
+The homelab runs a Talos Kubernetes cluster on Proxmox. All platform services — including stateful workloads — run inside the cluster. Infrastructure services (Traefik, Tailscale) run as LXC containers on Proxmox, outside the cluster.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -43,8 +43,7 @@ The homelab follows a split architecture: **stateless platform services** run in
 │                                                              │
 │  wave 0: cilium, prometheus-operator-crds                    │
 │  wave 1: metallb, sealed-secrets                             │
-│  wave 2: democratic-csi, proxmox-csi, external-secrets,      │
-│          monitoring, traefik                                 │
+│  wave 2: proxmox-csi, external-secrets, monitoring, traefik  │
 │  wave 3: argocd                                              │
 └──────────────────────────────────────────────────────────────┘
 
@@ -53,11 +52,6 @@ The homelab follows a split architecture: **stateless platform services** run in
 │  traefik, tailscale                                          │
 └──────────────────────────────────────────────────────────────┘
 
-┌──────────────────────────────────────────────────────────────┐
-│                   TrueNAS (Docker containers)                │
-│  gitea, authentik, grafana, victoria metrics/logs,           │
-│  garage, zot registry, gitea runners                         │
-└──────────────────────────────────────────────────────────────┘
 ```
 
 ## Repository Structure
@@ -74,7 +68,6 @@ The homelab follows a split architecture: **stateless platform services** run in
 │   └── platforms/            # "platforms" cluster
 │       ├── argocd/
 │       ├── cilium/
-│       ├── democratic-csi/
 │       ├── proxmox-csi/
 │       ├── external-secrets/
 │       ├── metallb/
@@ -100,10 +93,9 @@ The homelab follows a split architecture: **stateless platform services** run in
 | **Prometheus Operator CRDs** | `prometheus-operator-crds` | ServiceMonitor / PodMonitor CRDs for metrics |
 | **MetalLB** | `metallb-system` | Bare-metal LoadBalancer (L2 mode) |
 | **Sealed Secrets** | `sealed-secrets` | Encrypt secrets for safe Git storage + UI |
-| **Democratic-CSI** | `democratic-csi` | CSI driver for TrueNAS NFS provisioning (migrating to Proxmox CSI) |
 | **Proxmox CSI** | `csi-proxmox` | CSI driver for Proxmox LVM block storage |
-| **External Secrets** | `external-secrets` | Sync secrets from 1Password into Kubernetes |
-| **Monitoring** | `monitoring` | VictoriaMetrics Operator + VictoriaLogs Collector; ships metrics and logs to TrueNAS |
+| **External Secrets** | `external-secrets` | Sync secrets from Infisical into Kubernetes |
+| **Monitoring** | `monitoring` | VictoriaMetrics Operator + VMSingle + VictoriaLogs + VictoriaTraces; full in-cluster observability stack |
 | **Traefik** | `traefik` | In-cluster ingress controller & reverse proxy |
 | **ArgoCD** | `argocd` | GitOps continuous delivery |
 
@@ -115,7 +107,7 @@ Applications are deployed in a specific order using ArgoCD sync waves to respect
 |---|---|---|
 | **0** | Cilium, Prometheus Operator CRDs | Core networking & CRD foundations |
 | **1** | MetalLB, Sealed Secrets | LoadBalancer IPs & secret encryption |
-| **2** | Democratic-CSI, Proxmox CSI, External Secrets, Monitoring, Traefik | Storage, secrets sync, observability & ingress |
+| **2** | Proxmox CSI, External Secrets, Infisical, Monitoring | Storage, secrets sync, secret management, observability |
 | **3** | ArgoCD | GitOps platform (needs Traefik ingress, External Secrets for repo creds) |
 
 ## Bootstrap
@@ -222,7 +214,7 @@ Secrets are managed through a layered approach:
 
 **Flow:** 1Password → External Secrets Operator → Kubernetes Secrets
 
-Applications that use ExternalSecrets: Democratic-CSI (TrueNAS driver config), Proxmox CSI (Proxmox API credentials).
+The Proxmox CSI credentials are managed via SealedSecret (no dependency on Infisical). Regenerate with `make bootstrap-seal-proxmox-csi-config`.
 
 ## Networking
 
@@ -236,7 +228,7 @@ Applications that use ExternalSecrets: Democratic-CSI (TrueNAS driver config), P
 
 ### Traffic Flow
 
-External requests hit the Traefik LXC container (`10.40.0.50`), which terminates TLS using Let's Encrypt certificates via Cloudflare DNS challenge. For in-cluster services, the LXC proxy forwards HTTP traffic to the in-cluster Traefik at `10.40.2.1` (MetalLB IP), which routes to the appropriate pod. For TrueNAS services, the LXC proxy forwards directly to the service IP on the `10.40.1.x` subnet.
+External requests hit the Traefik LXC container (`10.40.0.50`), which terminates TLS using Let's Encrypt certificates via Cloudflare DNS challenge. For in-cluster services, the LXC proxy forwards HTTP traffic to the in-cluster Traefik at `10.40.2.1` (MetalLB IP), which routes to the appropriate pod.
 
 ### In-Cluster Service Endpoints
 
@@ -252,28 +244,22 @@ External requests hit the Traefik LXC container (`10.40.0.50`), which terminates
 
 | Component | Details |
 |---|---|
-| **CSI Drivers** | Democratic-CSI (TrueNAS NFS, default) + Proxmox CSI Plugin (LVM block, migration target) |
-| **Default StorageClass** | `truenas-nfs` (Retain policy, immediate binding) — migrating to `proxmox-lvm` |
+| **CSI Driver** | Proxmox CSI Plugin (LVM block storage via Proxmox API) |
+| **Default StorageClass** | `proxmox-lvm` (Retain policy, WaitForFirstConsumer, ext4, SSD) |
 
 ## Observability
 
-Observability uses a split architecture: the **collection layer** runs inside the Kubernetes cluster, while the **storage and visualization layer** runs on TrueNAS.
-
-### In-Cluster (monitoring chart)
+The full observability stack runs in-cluster.
 
 | Component | Purpose |
 |---|---|
 | **VictoriaMetrics Operator** | Manages VMAgent, VMServiceScrape, VMNodeScrape CRDs; auto-converts Prometheus ServiceMonitor/PodMonitor |
-| **VMAgent** | Scrapes all discovered targets and remote-writes metrics to TrueNAS VMsingle |
-| **VictoriaLogs Collector** | DaemonSet that tails container logs from every node and ships them to TrueNAS VictoriaLogs |
-
-### On TrueNAS (Docker containers)
-
-| Component | Address | Purpose |
-|---|---|---|
-| **VMsingle** | `10.40.1.60:8428` | Metrics storage (receives remote-write from VMAgent) |
-| **VictoriaLogs** | `10.40.1.60:9428` | Log storage (receives logs from collector) |
-| **Grafana** | `10.40.1.50` | Dashboards & visualization |
+| **VMSingle** | In-cluster metrics storage |
+| **VMAgent** | Scrapes all discovered targets and remote-writes metrics to VMSingle |
+| **VictoriaLogs** | In-cluster log storage |
+| **VictoriaLogs Collector** | DaemonSet that tails container logs from every node |
+| **VictoriaTraces** | In-cluster trace storage |
+| **Grafana** | Dashboards & visualization |
 
 Prometheus `ServiceMonitor` and `PodMonitor` CRDs are installed at wave 0 so all applications can expose metrics from the start. The VictoriaMetrics Operator auto-converts these into VMServiceScrape/VMPodScrape objects.
 

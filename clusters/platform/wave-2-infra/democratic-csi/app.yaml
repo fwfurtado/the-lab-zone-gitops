@@ -1,4 +1,0 @@
-app:
-  name: democratic-csi
-  namespace: democratic-csi
-  syncWave: "2"

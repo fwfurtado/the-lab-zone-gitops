@@ -130,12 +130,9 @@ migration-validate-wave2:
 	$(KUBECTL) get pods -n external-secrets --no-headers; \
 	echo "--- ClusterSecretStore"; \
 	$(KUBECTL) get clustersecretstore infisical; \
-	echo "--- Democratic CSI"; \
-	$(KUBECTL) get pods -n democratic-csi --no-headers; \
 	echo "--- Proxmox CSI"; \
 	$(KUBECTL) get pods -n csi-proxmox --no-headers; \
-	echo "--- StorageClasses"; \
-	$(KUBECTL) get storageclass truenas-nfs --no-headers; \
+	echo "--- StorageClass"; \
 	$(KUBECTL) get storageclass proxmox-lvm --no-headers; \
 	echo "--- Monitoring: VM Operator"; \
 	$(KUBECTL) get pods -n monitoring -l app.kubernetes.io/name=victoria-metrics-operator --no-headers; \
