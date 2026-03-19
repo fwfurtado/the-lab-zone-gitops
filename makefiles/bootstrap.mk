@@ -3,6 +3,7 @@
 
 .PHONY: bootstrap-secrets bootstrap-sealed-secrets-key bootstrap-app
 .PHONY: bootstrap-seal-infisical-secrets bootstrap-seal-infisical-credentials
+.PHONY: bootstrap-seal-proxmox-csi-config
 
 # Aplica apenas o Secret do repo via 1Password inject (op inject).
 bootstrap-secrets:
@@ -62,6 +63,25 @@ bootstrap-seal-infisical-credentials:
 	| kubeseal --format yaml --cert $$tmp_cert \
 	> clusters/platform/wave-2-infra/external-secrets/templates/infisical-credentials-sealedsecret.yaml; \
 	rm -f $$tmp_key $$tmp_cert
+
+# Gera o SealedSecret com config.yaml do Proxmox CSI Plugin.
+# Items: op://homelab/k8s proxmox csi/token-id, op://homelab/k8s proxmox csi/credential
+bootstrap-seal-proxmox-csi-config:
+	@tmp_key=$$(mktemp); tmp_cert=$$(mktemp); tmp_config=$$(mktemp); \
+	op read "op://homelab/K8s Platforms Sealed Secret Key/private key" > $$tmp_key; \
+	if grep -q "BEGIN OPENSSH PRIVATE KEY" $$tmp_key; then \
+		ssh-keygen -p -m PEM -f $$tmp_key -P "" -N "" >/dev/null; \
+	fi; \
+	openssl req -new -x509 -key $$tmp_key -out $$tmp_cert -subj "/CN=sealed-secrets"; \
+	TOKEN_ID=$$(op read "op://homelab/k8s proxmox csi/token-id"); \
+	CREDENTIAL=$$(op read "op://homelab/k8s proxmox csi/credential"); \
+	printf 'clusters:\n  - url: "https://10.40.0.200:8006/api2/json"\n    insecure: false\n    token_id: "%s"\n    token_secret: "%s"\n    region: "homelab"\n' "$$TOKEN_ID" "$$CREDENTIAL" > $$tmp_config; \
+	$(KUBECTL) -n csi-proxmox create secret generic proxmox-csi-config \
+		--from-file=config.yaml=$$tmp_config \
+		--dry-run=client -o yaml \
+	| kubeseal --format yaml --cert $$tmp_cert \
+	> clusters/platform/wave-2-infra/proxmox-csi/templates/proxmox-csi-config-sealedsecret.yaml; \
+	rm -f $$tmp_key $$tmp_cert $$tmp_config
 
 # Aplica apenas a Application bootstrap (root.yaml).
 bootstrap-app:

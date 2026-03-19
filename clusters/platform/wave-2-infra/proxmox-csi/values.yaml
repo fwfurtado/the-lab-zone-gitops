@@ -1,6 +1,7 @@
 proxmox-csi-plugin:
-  # Cluster credentials come from Secret "proxmox-csi-config",
-  # synced by ESO from Infisical (see templates/proxmox-csi-config-external-secret.yaml).
+  # Cluster credentials come from SealedSecret "proxmox-csi-config"
+  # (see templates/proxmox-csi-config-sealedsecret.yaml).
+  # Regenerate with: make bootstrap-seal-proxmox-csi-config
   existingConfigSecret: proxmox-csi-config
 
   storageClasses:
