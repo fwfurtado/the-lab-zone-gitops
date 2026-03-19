@@ -16,7 +16,7 @@ spec:
       secretNamespace: infisical
       template:
         data:
-          password: '{{ "{{ .authelia-password.Value }}" }}'
+          password: '{{ "{{" }} index . "authelia-password" "Value" {{ "}}" }}'
   authentication:
     universalAuth:
       credentialsRef:
