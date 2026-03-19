@@ -5,7 +5,7 @@ proxmox-csi-plugin:
 
   storageClasses:
     - name: proxmox-lvm
-      defaultClass: false
+      defaultClass: true
       reclaimPolicy: Retain
       volumeBindingMode: WaitForFirstConsumer
       allowVolumeExpansion: true

@@ -26,7 +26,7 @@ infisical-standalone:
     primary:
       persistence:
         size: 8Gi
-        storageClass: truenas-nfs
+        storageClass: proxmox-lvm
     auth:
       username: infisical
       password: infisical
@@ -40,6 +40,6 @@ infisical-standalone:
     master:
       persistence:
         size: 2Gi
-        storageClass: truenas-nfs
+        storageClass: proxmox-lvm
     auth:
       password: infisical-redis

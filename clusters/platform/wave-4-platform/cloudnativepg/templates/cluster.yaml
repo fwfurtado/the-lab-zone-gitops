@@ -11,7 +11,7 @@ spec:
 
   storage:
     size: 20Gi
-    storageClass: truenas-nfs
+    storageClass: proxmox-lvm
 
   monitoring:
     enablePodMonitor: true

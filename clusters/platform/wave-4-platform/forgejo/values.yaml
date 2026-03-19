@@ -83,7 +83,7 @@ forgejo:
   persistence:
     enabled: true
     size: 10Gi
-    storageClass: truenas-nfs
+    storageClass: proxmox-lvm
 
   resources:
     requests:

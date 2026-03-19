@@ -10,7 +10,7 @@ valkey:
     persistence:
       enabled: true
       size: 2Gi
-      storageClass: truenas-nfs
+      storageClass: proxmox-lvm
     resources:
       requests:
         cpu: 50m

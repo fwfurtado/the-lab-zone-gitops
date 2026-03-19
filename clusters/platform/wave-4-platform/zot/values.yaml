@@ -5,7 +5,7 @@ zot:
   pvc:
     create: true
     storage: 50Gi
-    storageClassName: truenas-nfs
+    storageClassName: proxmox-lvm
 
   serviceMonitor:
     enabled: true

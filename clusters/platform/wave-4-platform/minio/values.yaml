@@ -6,7 +6,7 @@ minio:
   persistence:
     enabled: true
     size: 50Gi
-    storageClass: truenas-nfs
+    storageClass: proxmox-lvm
 
   resources:
     requests:

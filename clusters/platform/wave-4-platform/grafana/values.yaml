@@ -19,7 +19,7 @@ grafana:
   persistence:
     enabled: true
     size: 5Gi
-    storageClass: truenas-nfs
+    storageClass: proxmox-lvm
 
   envFromSecrets:
     - name: grafana-credentials
