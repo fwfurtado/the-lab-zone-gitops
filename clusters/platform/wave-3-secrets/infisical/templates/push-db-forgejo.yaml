@@ -1,0 +1,24 @@
+apiVersion: secrets.infisical.com/v1alpha1
+kind: InfisicalPushSecret
+metadata:
+  name: push-db-forgejo
+  namespace: infisical
+spec:
+  resyncInterval: 1h
+  hostAPI: http://infisical-infisical-standalone-infisical.infisical.svc.cluster.local:8080/api
+  destination:
+    projectSlug: homelab
+    environmentSlug: prod
+    secretsPath: /database/forgejo
+  push:
+    secret:
+      secretName: db-credentials
+      secretNamespace: infisical
+      template:
+        data:
+          password: "{{ .forgejo-password.Value }}"
+  authentication:
+    universalAuth:
+      credentialsRef:
+        secretName: infisical-credentials
+        secretNamespace: external-secrets

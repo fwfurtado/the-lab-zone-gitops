@@ -1,0 +1,4 @@
+app:
+  name: infisical-secrets-operator
+  namespace: infisical-secrets-operator
+  syncWave: "1"

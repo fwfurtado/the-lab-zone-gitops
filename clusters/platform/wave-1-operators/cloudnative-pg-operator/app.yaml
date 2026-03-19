@@ -1,0 +1,4 @@
+app:
+  name: cloudnative-pg-operator
+  namespace: cnpg-system
+  syncWave: "1"

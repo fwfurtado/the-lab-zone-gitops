@@ -1,4 +1,4 @@
 app:
   name: forgejo
   namespace: forgejo
-  syncWave: "4"
+  syncWave: "5"

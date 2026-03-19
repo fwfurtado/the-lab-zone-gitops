@@ -21,16 +21,7 @@ infisical-standalone:
     enabled: false
 
   postgresql:
-    enabled: true
-    fullnameOverride: infisical-postgresql
-    primary:
-      persistence:
-        size: 8Gi
-        storageClass: proxmox-lvm
-    auth:
-      username: infisical
-      password: infisical
-      database: infisicalDB
+    enabled: false
 
   redis:
     enabled: true

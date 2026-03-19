@@ -1,4 +1,4 @@
 app:
   name: grafana
   namespace: grafana
-  syncWave: "4"
+  syncWave: "5"

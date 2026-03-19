@@ -4,6 +4,7 @@
 .PHONY: bootstrap-secrets bootstrap-sealed-secrets-key bootstrap-app
 .PHONY: bootstrap-seal-infisical-secrets bootstrap-seal-infisical-credentials
 .PHONY: bootstrap-seal-proxmox-csi-config
+.PHONY: bootstrap-seal-db-credentials bootstrap-seal-cnpg-minio-backup
 
 # Aplica apenas o Secret do repo via 1Password inject (op inject).
 bootstrap-secrets:
@@ -22,9 +23,10 @@ bootstrap-sealed-secrets-key:
 	$(KUBECTL) -n sealed-secrets create secret tls sealed-secrets-key --cert=$$tmp_cert --key=$$tmp_key --dry-run=client -o yaml | $(KUBECTL) apply -f -; \
 	rm -f $$tmp_key $$tmp_cert
 
-# Gera o SealedSecret com AUTH_SECRET, ROOT_ENCRYPTION_KEY e SITE_URL para o Infisical.
+# Gera o SealedSecret com AUTH_SECRET, ROOT_ENCRYPTION_KEY, SITE_URL e DB_CONNECTION_URI para o Infisical.
 # KMS migration requires 32-byte key; use ROOT_ENCRYPTION_KEY (not ENCRYPTION_KEY).
 # Items: op://homelab/Infisical/auth-secret, op://homelab/Infisical/root-encryption-key
+#        op://homelab/Infisical Database/password
 # Generate root-encryption-key with: openssl rand -base64 32
 bootstrap-seal-infisical-secrets:
 	@tmp_key=$$(mktemp); tmp_cert=$$(mktemp); \
@@ -35,13 +37,15 @@ bootstrap-seal-infisical-secrets:
 	openssl req -new -x509 -key $$tmp_key -out $$tmp_cert -subj "/CN=sealed-secrets"; \
 	AUTH_SECRET=$$(op read "op://homelab/Infisical/auth-secret"); \
 	ROOT_ENCRYPTION_KEY=$$(op read "op://homelab/Infisical/root-encryption-key"); \
+	INFISICAL_DB_PASSWORD=$$(op read "op://homelab/Infisical Database/password"); \
 	$(KUBECTL) -n infisical create secret generic infisical-secrets \
 		--from-literal=AUTH_SECRET="$$AUTH_SECRET" \
 		--from-literal=ROOT_ENCRYPTION_KEY="$$ROOT_ENCRYPTION_KEY" \
 		--from-literal=SITE_URL="https://infisical.infra.the-lab.zone" \
+		--from-literal=DB_CONNECTION_URI="postgresql://infisical:$${INFISICAL_DB_PASSWORD}@platform-postgres-rw.cloudnativepg.svc.cluster.local:5432/infisicalDB" \
 		--dry-run=client -o yaml \
 	| kubeseal --format yaml --cert $$tmp_cert \
-	> clusters/platform/wave-2-infra/infisical/templates/infisical-secrets-sealedsecret.yaml; \
+	> clusters/platform/wave-3-secrets/infisical/templates/infisical-secrets-sealedsecret.yaml; \
 	rm -f $$tmp_key $$tmp_cert
 
 # Gera o SealedSecret com clientId e clientSecret da Machine Identity do Infisical.
@@ -82,6 +86,55 @@ bootstrap-seal-proxmox-csi-config:
 	| kubeseal --format yaml --cert $$tmp_cert \
 	> clusters/platform/wave-2-infra/proxmox-csi/templates/proxmox-csi-config-sealedsecret.yaml; \
 	rm -f $$tmp_key $$tmp_cert $$tmp_config
+
+# Gera SealedSecrets com senhas de DB para o init-databases-job (cloudnativepg) e PushSecrets (infisical).
+# Items: op://homelab/Infisical Database/password
+#        op://homelab/Authelia Database/password
+#        op://homelab/Forgejo Database/password
+bootstrap-seal-db-credentials:
+	@tmp_key=$$(mktemp); tmp_cert=$$(mktemp); \
+	op read "op://homelab/K8s Platforms Sealed Secret Key/private key" > $$tmp_key; \
+	if grep -q "BEGIN OPENSSH PRIVATE KEY" $$tmp_key; then \
+		ssh-keygen -p -m PEM -f $$tmp_key -P "" -N "" >/dev/null; \
+	fi; \
+	openssl req -new -x509 -key $$tmp_key -out $$tmp_cert -subj "/CN=sealed-secrets"; \
+	AUTHELIA_PW=$$(op read "op://homelab/Authelia Database/password"); \
+	FORGEJO_PW=$$(op read "op://homelab/Forgejo Database/password"); \
+	INFISICAL_PW=$$(op read "op://homelab/Infisical Database/password"); \
+	$(KUBECTL) -n cloudnativepg create secret generic db-init-credentials \
+		--from-literal=authelia-password="$$AUTHELIA_PW" \
+		--from-literal=forgejo-password="$$FORGEJO_PW" \
+		--from-literal=infisical-password="$$INFISICAL_PW" \
+		--dry-run=client -o yaml \
+	| kubeseal --format yaml --cert $$tmp_cert \
+	> clusters/platform/wave-2-infra/cloudnativepg/templates/db-credentials-sealedsecret.yaml; \
+	$(KUBECTL) -n infisical create secret generic db-credentials \
+		--from-literal=authelia-password="$$AUTHELIA_PW" \
+		--from-literal=forgejo-password="$$FORGEJO_PW" \
+		--from-literal=infisical-password="$$INFISICAL_PW" \
+		--dry-run=client -o yaml \
+	| kubeseal --format yaml --cert $$tmp_cert \
+	> clusters/platform/wave-3-secrets/infisical/templates/db-credentials-sealedsecret.yaml; \
+	rm -f $$tmp_key $$tmp_cert
+
+# Gera SealedSecret com credenciais MinIO para backup barman do CloudNativePG.
+# Items: op://homelab/MinIO/username, op://homelab/MinIO/password
+bootstrap-seal-cnpg-minio-backup:
+	@tmp_key=$$(mktemp); tmp_cert=$$(mktemp); \
+	op read "op://homelab/K8s Platforms Sealed Secret Key/private key" > $$tmp_key; \
+	if grep -q "BEGIN OPENSSH PRIVATE KEY" $$tmp_key; then \
+		ssh-keygen -p -m PEM -f $$tmp_key -P "" -N "" >/dev/null; \
+	fi; \
+	openssl req -new -x509 -key $$tmp_key -out $$tmp_cert -subj "/CN=sealed-secrets"; \
+	ACCESS_KEY=$$(op read "op://homelab/MinIO/username"); \
+	SECRET_KEY=$$(op read "op://homelab/MinIO/password"); \
+	$(KUBECTL) -n cloudnativepg create secret generic minio-backup-credentials \
+		--from-literal=ACCESS_KEY_ID="$$ACCESS_KEY" \
+		--from-literal=ACCESS_SECRET_KEY="$$SECRET_KEY" \
+		--dry-run=client -o yaml \
+	| kubeseal --format yaml --cert $$tmp_cert \
+	> clusters/platform/wave-2-infra/cloudnativepg/templates/minio-backup-credentials-sealedsecret.yaml; \
+	rm -f $$tmp_key $$tmp_cert
 
 # Aplica apenas a Application bootstrap (root.yaml).
 bootstrap-app:

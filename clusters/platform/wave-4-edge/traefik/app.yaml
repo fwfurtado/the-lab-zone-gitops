@@ -1,4 +1,4 @@
 app:
   name: traefik
   namespace: traefik
-  syncWave: "3"
+  syncWave: "4"

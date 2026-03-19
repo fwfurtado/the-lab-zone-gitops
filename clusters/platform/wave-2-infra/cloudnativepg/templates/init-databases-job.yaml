@@ -39,6 +39,11 @@ spec:
                 secretKeyRef:
                   name: db-init-credentials
                   key: forgejo-password
+            - name: INFISICAL_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-init-credentials
+                  key: infisical-password
           command:
             - /bin/sh
             - -c
@@ -54,5 +59,10 @@ spec:
                 psql -d postgres -c "CREATE ROLE forgejo WITH LOGIN PASSWORD '$FORGEJO_DB_PASSWORD'"
               psql -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='forgejo'" | grep -q 1 || \
                 psql -d postgres -c "CREATE DATABASE forgejo OWNER forgejo"
+
+              psql -d postgres -tc "SELECT 1 FROM pg_roles WHERE rolname='infisical'" | grep -q 1 || \
+                psql -d postgres -c "CREATE ROLE infisical WITH LOGIN PASSWORD '$INFISICAL_DB_PASSWORD'"
+              psql -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='infisicalDB'" | grep -q 1 || \
+                psql -d postgres -c "CREATE DATABASE \"infisicalDB\" OWNER infisical"
 
               echo "Database initialization complete"
