@@ -15,32 +15,49 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
-          containers:
+          volumes:
+            - name: dump
+              emptyDir: {}
+          initContainers:
             - name: pg-dump
-              image: bitnami/postgresql:16
+              image: mirror.gcr.io/bitnamilegacy/postgresql:16.2.0-debian-11-r16
               command:
                 - /bin/bash
                 - -c
                 - |
                   set -euo pipefail
                   TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-                  DUMP_FILE="/tmp/infisical-${TIMESTAMP}.sql.gz"
+                  echo "${TIMESTAMP}" > /dump/timestamp
+                  DUMP_FILE="/dump/infisical-${TIMESTAMP}.sql.gz"
                   echo "Starting pg_dump at ${TIMESTAMP}"
                   PGPASSWORD="${PGPASSWORD}" pg_dump -h infisical-postgresql -U infisical -d infisicalDB | gzip > "${DUMP_FILE}"
-                  echo "Uploading to MinIO..."
-                  apt-get update -qq && apt-get install -y -qq curl > /dev/null 2>&1
-                  curl -s -S --fail \
-                    -X PUT \
-                    -H "Host: minio.minio.svc.cluster.local:9000" \
-                    --aws-sigv4 "aws:amz:us-east-1:s3" \
-                    --user "${MINIO_ACCESS_KEY}:${MINIO_SECRET_KEY}" \
-                    --upload-file "${DUMP_FILE}" \
-                    "http://minio.minio.svc.cluster.local:9000/postgres-backups/infisical/infisical-${TIMESTAMP}.sql.gz"
-                  echo "Backup uploaded: infisical/infisical-${TIMESTAMP}.sql.gz"
-                  rm -f "${DUMP_FILE}"
+                  echo "pg_dump complete: ${DUMP_FILE}"
               env:
                 - name: PGPASSWORD
                   value: "infisical"
+              volumeMounts:
+                - name: dump
+                  mountPath: /dump
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+          containers:
+            - name: upload
+              image: quay.io/minio/mc:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  TIMESTAMP=$(cat /dump/timestamp)
+                  DUMP_FILE="/dump/infisical-${TIMESTAMP}.sql.gz"
+                  mc alias set backup http://minio.minio.svc.cluster.local:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
+                  mc cp "${DUMP_FILE}" "backup/postgres-backups/infisical/infisical-${TIMESTAMP}.sql.gz"
+                  echo "Backup uploaded: infisical/infisical-${TIMESTAMP}.sql.gz"
+              env:
                 - name: MINIO_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
@@ -51,9 +68,12 @@ spec:
                     secretKeyRef:
                       name: minio-backup-credentials
                       key: secret-key
+              volumeMounts:
+                - name: dump
+                  mountPath: /dump
               resources:
                 requests:
                   cpu: 50m
                   memory: 64Mi
                 limits:
-                  memory: 256Mi
+                  memory: 128Mi
