@@ -17,6 +17,11 @@ grafana:
         name: default
         foldersFromFilesStructure: false
 
+  admin:
+    existingSecret: grafana-credentials
+    userKey: admin-user
+    passwordKey: admin-password
+
   persistence:
     enabled: true
     size: 5Gi
