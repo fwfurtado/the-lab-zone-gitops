@@ -77,12 +77,7 @@ stack:
       scrapeInterval: 25s
       externalLabels:
         runs-on: k8s
-        cluster: platform
-      inlineRelabelConfig:
-        - sourceLabels: [exported_cluster]
-          targetLabel: cluster
-          regex: ".+"
-          action: replace
+        k8s_cluster: platform
       extraArgs:
         promscrape.streamParse: "true"
         promscrape.dropOriginalLabels: "true"
