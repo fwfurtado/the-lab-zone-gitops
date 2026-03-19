@@ -6,6 +6,6 @@ metallb:
 
   prometheus:
     serviceMonitor:
-      enabled: false
+      enabled: true
     prometheusRule:
       enabled: false

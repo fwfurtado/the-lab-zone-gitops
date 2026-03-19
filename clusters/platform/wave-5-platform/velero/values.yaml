@@ -1,4 +1,9 @@
 velero:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
   initContainers:
     - name: velero-plugin-for-aws
       image: velero/velero-plugin-for-aws:v1.14.0

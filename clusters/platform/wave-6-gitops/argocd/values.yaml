@@ -1,4 +1,19 @@
 argo-cd:
+  controller:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+  server:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+  repoServer:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
   dex:
     enabled: true
   configs:
