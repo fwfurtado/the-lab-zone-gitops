@@ -52,8 +52,9 @@ grafana:
       token_url: https://auth.infra.the-lab.zone/api/oidc/token
       api_url: https://auth.infra.the-lab.zone/api/oidc/userinfo
       groups_attribute_path: groups
-      role_attribute_path: contains(groups[*], 'admins') && 'Admin' || 'Viewer'
+      role_attribute_path: contains(groups, 'admins') && 'Admin' || 'Viewer'
       role_attribute_strict: true
+      allow_assign_grafana_admin: true
 
   datasources:
     datasources.yaml:
