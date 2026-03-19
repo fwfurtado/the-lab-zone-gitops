@@ -109,6 +109,13 @@ authelia:
             use: sig
             key:
               path: /secrets/authelia-oidc-jwks/private.pem
+        claims_policies:
+          default:
+            id_token:
+              - groups
+              - email
+              - preferred_username
+              - name
         cors:
           endpoints:
             - authorization
@@ -137,6 +144,7 @@ authelia:
           - client_id: grafana
             client_name: Grafana
             consent_mode: implicit
+            claims_policy: default
             client_secret:
               path: /secrets/authelia-oidc-clients/AUTHELIA_OIDC_CLIENT_GRAFANA_SECRET
             public: false
