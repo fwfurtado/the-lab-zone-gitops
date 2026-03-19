@@ -35,8 +35,6 @@ grafana:
     - name: grafana-credentials
 
   grafana.ini:
-    log:
-      level: debug
     server:
       root_url: https://grafana.infra.the-lab.zone
     auth:
