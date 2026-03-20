@@ -20,20 +20,21 @@ spec:
             - sh
             - -c
             - |
-              forgejo forgejo-cli actions register \
+              mkdir -p /tmp/forgejo/custom/conf
+              cat > /tmp/forgejo/custom/conf/app.ini <<EOINI
+              [database]
+              DB_TYPE = postgres
+              HOST = platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
+              NAME = forgejo
+              USER = forgejo
+              PASSWD = ${DB_PASSWORD}
+              EOINI
+              forgejo forgejo-cli --config /tmp/forgejo/custom/conf/app.ini actions register \
                 --secret "$RUNNER_SECRET" \
                 --name lab-runner \
                 --labels "docker"
           env:
-            - name: FORGEJO__database__DB_TYPE
-              value: postgres
-            - name: FORGEJO__database__HOST
-              value: platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
-            - name: FORGEJO__database__NAME
-              value: forgejo
-            - name: FORGEJO__database__USER
-              value: forgejo
-            - name: FORGEJO__database__PASSWD
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: forgejo-credentials
