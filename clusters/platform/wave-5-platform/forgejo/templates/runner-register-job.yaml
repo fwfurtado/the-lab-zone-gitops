@@ -29,7 +29,7 @@ spec:
               USER = forgejo
               PASSWD = ${DB_PASSWORD}
               EOINI
-              forgejo forgejo-cli --config /tmp/forgejo/custom/conf/app.ini actions register \
+              forgejo --config /tmp/forgejo/custom/conf/app.ini forgejo-cli actions register \
                 --secret "$RUNNER_SECRET" \
                 --name lab-runner \
                 --labels "docker"
