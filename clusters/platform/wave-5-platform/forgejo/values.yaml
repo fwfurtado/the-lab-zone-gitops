@@ -11,6 +11,9 @@ forgejo:
   gitea:
     config:
       APP_NAME: "The Lab Zone"
+      i18n:
+        LANGS: en-US
+        NAMES: English
       server:
         DOMAIN: git.infra.the-lab.zone
         ROOT_URL: https://git.infra.the-lab.zone
