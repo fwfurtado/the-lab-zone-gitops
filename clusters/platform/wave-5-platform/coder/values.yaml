@@ -25,6 +25,8 @@ coder:
         value: "openid,profile,email,groups"
       - name: CODER_OIDC_SIGN_IN_TEXT
         value: "Sign in with Authelia"
+      - name: CODER_MAX_TOKEN_LIFETIME
+        value: "87600h"
     service:
       type: ClusterIP
     serviceAccount:
