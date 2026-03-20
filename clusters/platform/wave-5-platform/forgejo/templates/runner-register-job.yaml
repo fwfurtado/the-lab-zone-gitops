@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: forgejo-runner-register
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: register
+          image: codeberg.org/forgejo/forgejo:10.0
+          command:
+            - sh
+            - -c
+            - |
+              forgejo forgejo-cli actions register \
+                --secret "$RUNNER_SECRET" \
+                --name lab-runner \
+                --labels "docker"
+          env:
+            - name: FORGEJO__database__DB_TYPE
+              value: postgres
+            - name: FORGEJO__database__HOST
+              value: platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
+            - name: FORGEJO__database__NAME
+              value: forgejo
+            - name: FORGEJO__database__USER
+              value: forgejo
+            - name: FORGEJO__database__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-credentials
+                  key: db-password
+            - name: RUNNER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-credentials
+                  key: runner-secret
+  backoffLimit: 3

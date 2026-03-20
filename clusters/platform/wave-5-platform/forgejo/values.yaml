@@ -39,6 +39,8 @@ forgejo:
         INSTALL_LOCK: "true"
       service:
         DISABLE_REGISTRATION: "true"
+      actions:
+        ENABLED: "true"
       # Permite que usuários OIDC sejam criados no primeiro login (sem abrir registro público)
       oauth2_client:
         ENABLE_AUTO_REGISTRATION: "true"

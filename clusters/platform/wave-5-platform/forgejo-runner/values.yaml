@@ -1,0 +1,37 @@
+forgejo-runner:
+  replicaCount: 2
+  runner:
+    config:
+      create: true
+      existingSecret: forgejo-runner-config
+      instance: http://forgejo-http.forgejo.svc.cluster.local:3000
+      file:
+        runner:
+          capacity: 4
+          fetch_interval: 30s
+          envs: {}
+          labels:
+            - "ubuntu-latest:docker://node:22-bookworm"
+
+  tolerations:
+    - key: "workload/forgejo-actions"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  dind:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi

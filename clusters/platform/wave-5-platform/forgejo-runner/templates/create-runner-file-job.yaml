@@ -1,0 +1,131 @@
+{{ $name := "forgejo-runner-create-file" }}
+{{ $secretName := "forgejo-runner-config" }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      - {{ $secretName }}
+    verbs:
+      - get
+      - update
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: {{ $secretName }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: Never
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ $name }}
+      containers:
+        - name: upload-config
+          image: docker.io/alpine/kubectl:1.35.2
+          command:
+            - sh
+            - -c
+            - |
+              # Check if .runner key already exists in the secret
+              key=$(kubectl get secret {{ $secretName }} -o jsonpath="{.data['.runner']}" 2>/dev/null)
+              [ $? -ne 0 ] && echo "Failed to get existing secret" && exit 1
+              [ -n "$key" ] && echo "Runner config already exists, skipping." && exit 0
+              # Wait for runner file to be created
+              while [ ! -f /data/.runner ]; do
+                echo "Waiting for .runner file..."
+                sleep 5
+              done
+              # Patch the secret with the .runner file
+              kubectl patch secret {{ $secretName }} -p "{\"data\":{\".runner\":\"$(base64 /data/.runner | tr -d '\n')\"}}"
+              [ $? -ne 0 ] && echo "Failed to update secret." && exit 1
+              echo "Runner config successfully created."
+          volumeMounts:
+            - mountPath: /data/
+              name: data
+              readOnly: true
+        - name: create-runner-file
+          image: code.forgejo.org/forgejo/runner:12.7.2
+          command:
+            - sh
+            - -c
+            - |
+              # Check if runner config already exists in the secret
+              if [ -f /current/.runner ]; then
+                echo "Runner config exists already"
+                cp /current/.runner /data/.runner
+                exit 0
+              fi
+              cd /data
+              forgejo-runner create-runner-file \
+                --secret "$RUNNER_SECRET" \
+                --instance "http://forgejo-http.forgejo.svc.cluster.local:3000" \
+                --name "lab-runner"
+          env:
+            - name: RUNNER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-runner-init-secret
+                  key: runner-secret
+          volumeMounts:
+            - mountPath: /data/
+              name: data
+            - name: runner-data
+              mountPath: /current
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: runner-data
+          secret:
+            secretName: {{ $secretName }}
+  backoffLimit: 3
