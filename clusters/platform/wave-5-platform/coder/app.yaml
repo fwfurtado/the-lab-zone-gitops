@@ -1,0 +1,4 @@
+app:
+  name: coder
+  namespace: coder
+  syncWave: "5"

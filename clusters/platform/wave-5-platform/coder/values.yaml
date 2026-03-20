@@ -1,0 +1,21 @@
+coder:
+  coder:
+    env:
+      - name: CODER_PG_CONNECTION_URL
+        valueFrom:
+          secretKeyRef:
+            name: coder-db-url
+            key: url
+      - name: CODER_ACCESS_URL
+        value: "https://coder.platform.the-lab.zone"
+      - name: CODER_OAUTH2_GITHUB_DEFAULT_PROVIDER_ENABLE
+        value: "false"
+    service:
+      type: ClusterIP
+    serviceAccount:
+      workspacePerms: true
+      enableDeployments: true
+      workspaceNamespaces:
+        - name: coder-workspaces
+    ingress:
+      enable: false

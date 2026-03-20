@@ -30,7 +30,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
     reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-    reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,argocd"
+    reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,argocd,coder"
 spec:
   secretName: platform-wildcard-tls
   issuerRef:
@@ -42,4 +42,4 @@ spec:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,argocd"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,argocd,coder"

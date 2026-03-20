@@ -5,6 +5,7 @@
 .PHONY: bootstrap-seal-infisical-secrets bootstrap-seal-infisical-credentials
 .PHONY: bootstrap-seal-proxmox-csi-config
 .PHONY: bootstrap-seal-db-credentials bootstrap-seal-cnpg-minio-backup
+.PHONY: bootstrap-seal-coder-db-url
 
 # Aplica apenas o Secret do repo via 1Password inject (op inject).
 bootstrap-secrets:
@@ -91,6 +92,7 @@ bootstrap-seal-proxmox-csi-config:
 # Items: op://homelab/Infisical Database/password
 #        op://homelab/Authelia Database/password
 #        op://homelab/Forgejo Database/password
+#        op://homelab/Coder Database/password
 bootstrap-seal-db-credentials:
 	@tmp_key=$$(mktemp); tmp_cert=$$(mktemp); \
 	op read "op://homelab/K8s Platforms Sealed Secret Key/private key" > $$tmp_key; \
@@ -101,10 +103,12 @@ bootstrap-seal-db-credentials:
 	AUTHELIA_PW=$$(op read "op://homelab/Authelia Database/password"); \
 	FORGEJO_PW=$$(op read "op://homelab/Forgejo Database/password"); \
 	INFISICAL_PW=$$(op read "op://homelab/Infisical Database/password"); \
+	CODER_PW=$$(op read "op://homelab/Coder Database/password"); \
 	$(KUBECTL) -n cloudnativepg create secret generic db-init-credentials \
 		--from-literal=authelia-password="$$AUTHELIA_PW" \
 		--from-literal=forgejo-password="$$FORGEJO_PW" \
 		--from-literal=infisical-password="$$INFISICAL_PW" \
+		--from-literal=coder-password="$$CODER_PW" \
 		--dry-run=client -o yaml \
 	| kubeseal --format yaml --cert $$tmp_cert \
 	> clusters/platform/wave-2-infra/cloudnativepg/templates/db-credentials-sealedsecret.yaml; \
@@ -112,9 +116,27 @@ bootstrap-seal-db-credentials:
 		--from-literal=authelia-password="$$AUTHELIA_PW" \
 		--from-literal=forgejo-password="$$FORGEJO_PW" \
 		--from-literal=infisical-password="$$INFISICAL_PW" \
+		--from-literal=coder-password="$$CODER_PW" \
 		--dry-run=client -o yaml \
 	| kubeseal --format yaml --cert $$tmp_cert \
 	> clusters/platform/wave-3-secrets/infisical/templates/db-credentials-sealedsecret.yaml; \
+	rm -f $$tmp_key $$tmp_cert
+
+# Gera SealedSecret com a connection URL do PostgreSQL para o Coder.
+# Items: op://homelab/Coder Database/password
+bootstrap-seal-coder-db-url:
+	@tmp_key=$$(mktemp); tmp_cert=$$(mktemp); \
+	op read "op://homelab/K8s Platforms Sealed Secret Key/private key" > $$tmp_key; \
+	if grep -q "BEGIN OPENSSH PRIVATE KEY" $$tmp_key; then \
+		ssh-keygen -p -m PEM -f $$tmp_key -P "" -N "" >/dev/null; \
+	fi; \
+	openssl req -new -x509 -key $$tmp_key -out $$tmp_cert -subj "/CN=sealed-secrets"; \
+	CODER_PW=$$(op read "op://homelab/Coder Database/password"); \
+	$(KUBECTL) -n coder create secret generic coder-db-url \
+		--from-literal=url="postgres://coder:$${CODER_PW}@platform-postgres-rw.cloudnativepg.svc.cluster.local:5432/coder?sslmode=disable" \
+		--dry-run=client -o yaml \
+	| kubeseal --format yaml --cert $$tmp_cert \
+	> clusters/platform/wave-5-platform/coder/templates/coder-db-url-sealedsecret.yaml; \
 	rm -f $$tmp_key $$tmp_cert
 
 # Gera SealedSecret com credenciais MinIO para backup barman do CloudNativePG.
