@@ -1,0 +1,55 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: coder-ssh-personal
+  namespace: coder-workspaces
+spec:
+  refreshInterval: 24h
+  secretStoreRef:
+    name: infisical
+    kind: ClusterSecretStore
+  target:
+    name: coder-ssh-personal
+    creationPolicy: Owner
+  data:
+    - secretKey: id_ed25519
+      remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        key: /coder/personal/ssh-private-key
+
+    - secretKey: id_ed25519.pub
+      remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        key: /coder/personal/ssh-public-key
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: coder-ssh-work
+  namespace: coder-workspaces
+spec:
+  refreshInterval: 24h
+  secretStoreRef:
+    name: infisical
+    kind: ClusterSecretStore
+  target:
+    name: coder-ssh-work
+    creationPolicy: Owner
+  data:
+    - secretKey: id_ed25519
+      remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        key: /coder/work/ssh-private-key
+
+    - secretKey: id_ed25519.pub
+      remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        key: /coder/work/ssh-public-key
