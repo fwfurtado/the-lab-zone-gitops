@@ -115,7 +115,7 @@ spec:
             - name: RUNNER_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: forgejo-credentials
+                  name: forgejo-runner-credentials
                   key: runner-secret
           volumeMounts:
             - mountPath: /data/

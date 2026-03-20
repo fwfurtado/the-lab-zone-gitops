@@ -1,4 +1,4 @@
 app:
   name: forgejo-runner
-  namespace: forgejo
+  namespace: forgejo-runner
   syncWave: "5"
