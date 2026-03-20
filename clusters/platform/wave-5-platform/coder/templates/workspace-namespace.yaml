@@ -4,3 +4,4 @@ metadata:
   name: coder-workspaces
   labels:
     app.kubernetes.io/managed-by: coder
+    pod-security.kubernetes.io/enforce: privileged
