@@ -7,6 +7,8 @@ metallb:
 
 
   prometheus:
+    serviceAccount: vmagent-vm-stack
+    namespace: monitoring
     serviceMonitor:
       enabled: true
     prometheusRule:
