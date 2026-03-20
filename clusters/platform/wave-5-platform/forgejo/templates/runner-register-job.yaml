@@ -20,8 +20,13 @@ spec:
             - sh
             - -c
             - |
-              mkdir -p /tmp/forgejo/custom/conf
+              export FORGEJO_WORK_DIR=/tmp/forgejo
+              export GITEA_WORK_DIR=/tmp/forgejo
+              mkdir -p /tmp/forgejo/custom/conf /tmp/forgejo/data/tmp/package-upload
               cat > /tmp/forgejo/custom/conf/app.ini <<EOINI
+              [security]
+              INSTALL_LOCK = true
+
               [database]
               DB_TYPE = postgres
               HOST = platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
@@ -29,7 +34,7 @@ spec:
               USER = forgejo
               PASSWD = ${DB_PASSWORD}
               EOINI
-              forgejo --config /tmp/forgejo/custom/conf/app.ini forgejo-cli actions register \
+              forgejo --config /tmp/forgejo/custom/conf/app.ini --work-path /tmp/forgejo forgejo-cli actions register \
                 --secret "$RUNNER_SECRET" \
                 --name lab-runner \
                 --labels "docker"
