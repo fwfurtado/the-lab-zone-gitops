@@ -1,5 +1,7 @@
 metallb:
   speaker:
+    tolerations:
+      - operator: "Exists"
     frr:
       enabled: false
 

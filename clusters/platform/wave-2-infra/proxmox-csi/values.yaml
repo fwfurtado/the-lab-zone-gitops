@@ -4,6 +4,10 @@ proxmox-csi-plugin:
   # Regenerate with: make bootstrap-seal-proxmox-csi-config
   existingConfigSecret: proxmox-csi-config
 
+  node:
+    tolerations:
+      - operator: "Exists"
+
   storageClasses:
     - name: proxmox-lvm
       defaultClass: true

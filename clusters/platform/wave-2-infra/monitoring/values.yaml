@@ -126,6 +126,9 @@ vlogs:
 # VictoriaLogs Collector (DaemonSet) — ships logs to in-cluster VLogs
 # =============================================================================
 log-collector:
+  tolerations:
+    - operator: "Exists"
+
   remoteWrite:
     - url: http://vlogs.monitoring.svc.cluster.local:9428
 
