@@ -7,6 +7,9 @@ zot:
     storage: 50Gi
     storageClassName: proxmox-lvm
 
+  strategy:
+    type: Recreate
+
   serviceMonitor:
     enabled: true
 
