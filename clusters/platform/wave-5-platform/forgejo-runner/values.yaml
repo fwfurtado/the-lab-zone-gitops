@@ -12,6 +12,7 @@ forgejo-runner:
           envs: {}
           labels:
             - "ubuntu-latest:docker://node:22-bookworm"
+            - "docker:docker://node:22-bookworm"
 
   tolerations:
     - key: "workload/forgejo-actions"
