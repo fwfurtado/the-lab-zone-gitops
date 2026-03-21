@@ -10,6 +10,8 @@ zot:
   serviceMonitor:
     enabled: true
 
+  mountConfig: true
+
   configFiles:
     config.json: |-
       {
