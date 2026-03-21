@@ -86,6 +86,9 @@ forgejo:
       type: ClusterIP
       port: 22
 
+  strategy:
+    type: Recreate
+
   persistence:
     enabled: true
     size: 10Gi
