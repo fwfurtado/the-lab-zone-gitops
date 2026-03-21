@@ -11,8 +11,8 @@ forgejo-runner:
           fetch_interval: 30s
           envs: {}
           labels:
-            - "ubuntu-latest:docker://node:22-bookworm"
-            - "docker:docker://node:22-bookworm"
+            - "ubuntu-latest:docker://registry.infra.the-lab.zone/dockerhub/library/node:22-bookworm"
+            - "docker:docker://registry.infra.the-lab.zone/dockerhub/library/node:22-bookworm"
 
   tolerations:
     - key: "workload/forgejo-actions"
