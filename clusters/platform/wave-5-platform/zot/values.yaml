@@ -9,6 +9,7 @@ zot:
 
   strategy:
     type: Recreate
+    rollingUpdate: null
 
   serviceMonitor:
     enabled: true
