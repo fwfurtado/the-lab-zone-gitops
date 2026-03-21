@@ -27,6 +27,8 @@ coder:
         value: "Sign in with Authelia"
       - name: CODER_MAX_TOKEN_LIFETIME
         value: "87600h"
+      - name: CODER_MAX_ADMIN_TOKEN_LIFETIME
+        value: "87600h"
     service:
       type: ClusterIP
     serviceAccount:
