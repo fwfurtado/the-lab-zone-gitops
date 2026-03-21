@@ -19,6 +19,12 @@ zot:
         "http": { "address": "0.0.0.0", "port": "5000" },
         "log": { "level": "info" },
         "extensions": {
+          "search": {
+            "enable": true
+          },
+          "ui": {
+            "enable": true
+          },
           "sync": {
             "enable": true,
             "registries": [
