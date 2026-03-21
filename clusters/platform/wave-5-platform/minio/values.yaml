@@ -1,6 +1,9 @@
 minio:
   mode: standalone
 
+  deploymentUpdate:
+    type: Recreate
+
   existingSecret: minio-credentials
 
   persistence:
