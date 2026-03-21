@@ -44,6 +44,7 @@ forgejo:
         DISABLE_REGISTRATION: "true"
       actions:
         ENABLED: "true"
+        DEFAULT_ACTIONS_URL: "self"
       # Permite que usuários OIDC sejam criados no primeiro login (sem abrir registro público)
       oauth2_client:
         ENABLE_AUTO_REGISTRATION: "true"
