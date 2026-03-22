@@ -1,4 +1,10 @@
 argo-workflows:
+  workflow:
+    serviceAccount:
+      create: true
+    rbac:
+      create: true
+
   controller:
     metricsConfig:
       enabled: true
