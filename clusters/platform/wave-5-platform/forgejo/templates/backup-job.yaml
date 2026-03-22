@@ -17,9 +17,6 @@ spec:
             runAsUser: 1000
             runAsGroup: 1000
           volumes:
-            - name: forgejo-data
-              persistentVolumeClaim:
-                claimName: gitea-shared-storage
             - name: tmp
               emptyDir: {}
             - name: backup-dir
@@ -87,9 +84,6 @@ spec:
                       name: forgejo-credentials
                       key: minio-secret-key
               volumeMounts:
-                - name: forgejo-data
-                  mountPath: /data
-                  readOnly: true
                 - name: tmp
                   mountPath: /tmp
                 - name: backup-dir
