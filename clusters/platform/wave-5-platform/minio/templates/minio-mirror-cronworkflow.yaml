@@ -11,6 +11,7 @@ spec:
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   workflowSpec:
+    serviceAccountName: argo-workflow
     entrypoint: mirror-all
     templates:
       - name: mirror-all
