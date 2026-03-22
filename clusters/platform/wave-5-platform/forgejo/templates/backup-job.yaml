@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: forgejo-backup
-  namespace: forgejo
+  namespace: "{{ .Release.Namespace }}"
 spec:
   schedule: "0 2 * * *"
   concurrencyPolicy: Forbid
