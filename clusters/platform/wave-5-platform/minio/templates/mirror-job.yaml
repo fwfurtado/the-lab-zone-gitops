@@ -41,7 +41,7 @@ spec:
                       --overwrite \
                       --remove \
                       "source/$bucket" \
-                      "dest/$bucket"
+                      "dest/$bucket" || true
                     echo "Bucket $bucket concluído."
                   done
 
