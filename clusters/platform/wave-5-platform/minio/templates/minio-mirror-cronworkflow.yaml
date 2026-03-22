@@ -3,10 +3,9 @@ kind: CronWorkflow
 metadata:
   name: minio-mirror
   namespace: argo-workflows
-  annotations:
-    argocd.argoproj.io/sync-options: ServerSideApply=false
 spec:
-  schedule: "0 3 * * *"
+  schedules:
+    - "0 3 * * *"
   timezone: "America/Sao_Paulo"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
