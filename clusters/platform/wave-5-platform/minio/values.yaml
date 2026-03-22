@@ -23,6 +23,9 @@ minio:
     - name: forgejo
       policy: none
       purge: false
+    - name: forgejo-backups
+      policy: none
+      purge: false      
     - name: velero
       policy: none
       purge: false
