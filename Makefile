@@ -16,7 +16,7 @@ include makefiles/migration.mk
 include makefiles/yamllint.mk
 include makefiles/zot.mk
 
-.PHONY: template validate clean yamllint bootstrap
+.PHONY: template validate clean yamllint bootstrap oidc-hash
 
 # Aplica o Secret do repositório, a chave do Sealed Secrets e aplica o bootstrap/root.yaml.
 # Após o bootstrap, execute `make bootstrap-seal-infisical-secrets` e depois
@@ -44,3 +44,18 @@ validate:
 
 clean:
 	@rm -rf "$(BUILD_DIR)"
+
+# Gera um client secret OIDC e seu hash PBKDF2 para uso no Authelia.
+# Uso: make oidc-hash
+#   ou: make oidc-hash PASSWORD=my-secret
+oidc-hash:
+	@if [ -z "$(PASSWORD)" ]; then \
+		PASSWORD=$$(openssl rand -base64 32); \
+		echo "Generated secret: $$PASSWORD"; \
+	else \
+		PASSWORD="$(PASSWORD)"; \
+		echo "Using provided secret"; \
+	fi; \
+	echo ""; \
+	echo "Hash:"; \
+	docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --password "$$PASSWORD"

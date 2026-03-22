@@ -1,0 +1,44 @@
+argo-workflows:
+  controller:
+    metricsConfig:
+      enabled: true
+    serviceMonitor:
+      enabled: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+  server:
+    enabled: true
+    authModes:
+      - sso
+    sso:
+      enabled: true
+      issuer: https://auth.infra.the-lab.zone
+      clientId:
+        name: argo-workflows-sso
+        key: client-id
+      clientSecret:
+        name: argo-workflows-sso
+        key: client-secret
+      redirectUrl: https://workflows.platform.the-lab.zone/oauth2/callback
+      scopes:
+        - openid
+        - profile
+        - email
+        - groups
+      rbac:
+        enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+    serviceMonitor:
+      enabled: true

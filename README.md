@@ -305,6 +305,22 @@ Runs yamllint across `applicationsets/`, `bootstrap/`, `clusters/`, and `.github
 make clean
 ```
 
+### Generate OIDC client secret hash
+
+```bash
+make oidc-hash
+```
+
+Generates a random OIDC client secret and its PBKDF2 hash for Authelia. The output includes the plain secret (to store in Infisical as the client secret) and the hash (to store as the hashed secret for Authelia).
+
+To hash an existing secret:
+
+```bash
+make oidc-hash PASSWORD=my-secret
+```
+
+Requires Docker.
+
 ### Re-seal 1Password token
 
 ```bash
@@ -324,3 +340,4 @@ Generates a new `SealedSecret` for the 1Password service account token using the
 | `kubeconform` | Manifest validation |
 | `yamllint` | YAML linting |
 | `openssl` / `ssh-keygen` | Key management for Sealed Secrets bootstrap |
+| `docker` | OIDC client secret hash generation |

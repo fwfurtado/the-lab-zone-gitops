@@ -191,6 +191,23 @@ authelia:
               - groups
             userinfo_signed_response_alg: none
 
+          - client_id: argo-workflows
+            client_name: Argo Workflows
+            consent_mode: implicit
+            claims_policy: default
+            client_secret:
+              path: /secrets/authelia-oidc-clients/AUTHELIA_OIDC_CLIENT_ARGO_WORKFLOWS_SECRET
+            public: false
+            authorization_policy: one_factor
+            redirect_uris:
+              - https://workflows.platform.the-lab.zone/oauth2/callback
+            scopes:
+              - openid
+              - profile
+              - email
+              - groups
+            userinfo_signed_response_alg: none
+
   # Users loaded from ExternalSecret (authelia-users) via Infisical key authelia-users-yaml.
   # In Infisical, create secret "authelia-users-yaml" with full users.yaml content, e.g.:
   #   users:

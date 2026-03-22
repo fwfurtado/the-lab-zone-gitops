@@ -1,0 +1,4 @@
+app:
+  name: argo-workflows
+  namespace: argo-workflows
+  syncWave: "6"
