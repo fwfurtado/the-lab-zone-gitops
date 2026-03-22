@@ -4,7 +4,7 @@ metadata:
   name: forgejo-backup
   namespace: forgejo
 spec:
-  schedule: "0 2 * * *" # todo dia às 2h (antes do mirror MinIO às 3h)
+  schedule: "0 2 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -22,8 +22,10 @@ spec:
                 claimName: gitea-shared-storage
             - name: tmp
               emptyDir: {}
-          containers:
-            - name: backup
+            - name: backup-dir
+              emptyDir: {}
+          initContainers:
+            - name: dump
               image: codeberg.org/forgejo/forgejo:10.0
               command:
                 - /bin/sh
@@ -37,7 +39,6 @@ spec:
                   mkdir -p /tmp/forgejo/custom/conf \
                             /tmp/forgejo/data/tmp/package-upload
 
-                  # Gera app.ini mínimo para o dump
                   cat > /tmp/forgejo/custom/conf/app.ini <<EOINI
                   [security]
                   INSTALL_LOCK = true
@@ -58,28 +59,17 @@ spec:
                   MINIO_USE_SSL = false
                   EOINI
 
-                  BACKUP_FILE="/tmp/forgejo-backup-$(date +%Y%m%dT%H%M%S).zip"
+                  BACKUP_FILE="/backup/forgejo-backup-$(date +%Y%m%dT%H%M%S).zip"
 
                   echo "Iniciando dump do Forgejo..."
-                  forgejo \
+                  forgejo dump \
                     --config /tmp/forgejo/custom/conf/app.ini \
                     --work-path /tmp/forgejo \
-                    admin dump \
                     --file "$BACKUP_FILE" \
                     --skip-log \
                     --type zip
 
-                  echo "Upload para MinIO bucket forgejo-backups..."
-                  mc alias set dest http://minio.minio.svc.cluster.local:9000 \
-                    "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
-
-                  mc cp "$BACKUP_FILE" "dest/forgejo-backups/$(basename $BACKUP_FILE)"
-
-                  echo "Removendo backups com mais de 30 dias..."
-                  mc rm --recursive --force --older-than 720h \
-                    dest/forgejo-backups/ || true
-
-                  echo "Backup concluído: $(basename $BACKUP_FILE)"
+                  echo "Dump concluído: $(basename $BACKUP_FILE)"
               env:
                 - name: DB_PASSWORD
                   valueFrom:
@@ -102,6 +92,8 @@ spec:
                   readOnly: true
                 - name: tmp
                   mountPath: /tmp
+                - name: backup-dir
+                  mountPath: /backup
               resources:
                 requests:
                   cpu: 100m
@@ -109,3 +101,45 @@ spec:
                 limits:
                   cpu: 500m
                   memory: 512Mi
+          containers:
+            - name: upload
+              image: minio/mc:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+
+                  echo "Configurando alias MinIO..."
+                  mc alias set dest http://minio.minio.svc.cluster.local:9000 \
+                    "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
+
+                  echo "Fazendo upload para forgejo-backups..."
+                  mc cp /backup/*.zip "dest/forgejo-backups/"
+
+                  echo "Removendo backups com mais de 30 dias..."
+                  mc rm --recursive --force --older-than 720h \
+                    dest/forgejo-backups/ || true
+
+                  echo "Upload concluído!"
+              env:
+                - name: MINIO_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-credentials
+                      key: minio-access-key
+                - name: MINIO_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-credentials
+                      key: minio-secret-key
+              volumeMounts:
+                - name: backup-dir
+                  mountPath: /backup
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
