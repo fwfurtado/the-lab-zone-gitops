@@ -19,7 +19,7 @@ spec:
           volumes:
             - name: forgejo-data
               persistentVolumeClaim:
-                claimName: forgejo
+                claimName: gitea-shared-storage
             - name: tmp
               emptyDir: {}
           containers:
