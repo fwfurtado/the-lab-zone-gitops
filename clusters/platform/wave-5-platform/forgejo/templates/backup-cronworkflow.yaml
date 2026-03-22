@@ -13,25 +13,22 @@ spec:
   workflowSpec:
     serviceAccountName: argo-workflow
     entrypoint: backup-all
-    parallelism: 5
+    parallelism: 30
     templates:
       - name: backup-all
         dag:
           tasks:
-            - name: list-repos
-              template: list-repos
-            - name: backup-repos
-              template: backup-repos
-              depends: list-repos
+            - name: list-owners
+              template: list-owners
+            - name: backup-owner
+              template: backup-owner
+              depends: list-owners
               arguments:
                 parameters:
-                  - name: repos
-                    value: "{{`{{tasks.list-repos.outputs.result}}`}}"
-            - name: cleanup
-              template: cleanup
-              depends: backup-repos
-
-      - name: list-repos
+                  - name: owner
+                    value: "{{`{{item}}`}}"
+              withParam: "{{`{{tasks.list-owners.outputs.result}}`}}"
+      - name: list-owners
         container:
           image: alpine:3.21
           command:
@@ -43,12 +40,77 @@ spec:
 
               FORGEJO_URL="http://forgejo-http.forgejo.svc.cluster.local:3000"
               PAGE=1
-              REPOS="[]"
+              ALL_REPOS=""
 
               while true; do
                 RESULT=$(curl -sf \
                   -H "Authorization: token $FORGEJO_TOKEN" \
                   "$FORGEJO_URL/api/v1/repos/search?limit=50&page=$PAGE" \
+                  | jq -r '.data[].full_name')
+                [ -z "$RESULT" ] && break
+                ALL_REPOS="$ALL_REPOS
+              $RESULT"
+                PAGE=$((PAGE + 1))
+              done
+
+              echo "$ALL_REPOS" | grep -v '^$' | cut -d'/' -f1 | sort -u | jq -Rc . | jq -sc .
+          env:
+            - name: FORGEJO_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-backup-token
+                  key: token
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+
+      - name: backup-owner
+        inputs:
+          parameters:
+            - name: owner
+        dag:
+          tasks:
+            - name: list-repos
+              template: list-repos-by-owner
+              arguments:
+                parameters:
+                  - name: owner
+                    value: "{{`{{inputs.parameters.owner}}`}}"
+            - name: backup-repo
+              template: backup-repo
+              depends: list-repos
+              arguments:
+                parameters:
+                  - name: repo
+                    value: "{{`{{item}}`}}"
+              withParam: "{{`{{tasks.list-repos.outputs.result}}`}}"
+
+      - name: list-repos-by-owner
+        inputs:
+          parameters:
+            - name: owner
+        container:
+          image: alpine:3.21
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              apk add --no-cache curl jq >/dev/null 2>&1
+
+              FORGEJO_URL="http://forgejo-http.forgejo.svc.cluster.local:3000"
+              OWNER="{{`{{inputs.parameters.owner}}`}}"
+              PAGE=1
+              REPOS="[]"
+
+              while true; do
+                RESULT=$(curl -sf \
+                  -H "Authorization: token $FORGEJO_TOKEN" \
+                  "$FORGEJO_URL/api/v1/repos/search?limit=50&page=$PAGE&owner=$OWNER" \
                   | jq -r '.data[].full_name')
                 [ -z "$RESULT" ] && break
                 REPOS=$(echo "$REPOS" | jq --arg r "$RESULT" '. + ($r | split("\n"))')
@@ -70,19 +132,6 @@ spec:
               cpu: 200m
               memory: 128Mi
 
-      - name: backup-repos
-        inputs:
-          parameters:
-            - name: repos
-        steps:
-          - - name: backup-repo
-              template: backup-repo
-              arguments:
-                parameters:
-                  - name: repo
-                    value: "{{`{{item}}`}}"
-              withParam: "{{`{{inputs.parameters.repos}}`}}"
-
       - name: backup-repo
         inputs:
           parameters:
@@ -94,14 +143,13 @@ spec:
             - -c
             - |
               set -e
-              apk add --no-cache curl git jq >/dev/null 2>&1
+              apk add --no-cache curl git >/dev/null 2>&1
               curl -sSf https://dl.min.io/client/mc/release/linux-amd64/mc \
                 -o /usr/local/bin/mc && chmod +x /usr/local/bin/mc
 
               REPO="{{`{{inputs.parameters.repo}}`}}"
               OWNER=$(echo "$REPO" | cut -d'/' -f1)
               NAME=$(echo "$REPO" | cut -d'/' -f2)
-              BACKUP_DATE=$(date +%Y%m%dT%H%M%S)
 
               echo "Configurando MinIO..."
               mc alias set dest http://minio.minio.svc.cluster.local:9000 \
@@ -110,17 +158,18 @@ spec:
               echo "Clonando $REPO..."
               git clone --mirror \
                 "http://$FORGEJO_TOKEN@forgejo-http.forgejo.svc.cluster.local:3000/$REPO.git" \
-                "/tmp/$OWNER-$NAME.git"
+                "/tmp/$NAME.git"
 
-              tar -czf "/tmp/$OWNER-$NAME.tar.gz" \
-                -C /tmp "$OWNER-$NAME.git"
-              rm -rf "/tmp/$OWNER-$NAME.git"
+              tar -czf "/tmp/$NAME.tar.gz" \
+                -C /tmp "$NAME.git"
+              rm -rf "/tmp/$NAME.git"
 
-              echo "Upload: $OWNER-$NAME.tar.gz"
-              mc cp "/tmp/$OWNER-$NAME.tar.gz" \
-                "dest/forgejo-backups/$BACKUP_DATE/$OWNER-$NAME.tar.gz"
+              echo "Upload: $OWNER/$NAME.tar.gz"
+              mc cp --disable-multipart \
+                "/tmp/$NAME.tar.gz" \
+                "dest/forgejo-backups/$OWNER/$NAME.tar.gz"
 
-              rm -f "/tmp/$OWNER-$NAME.tar.gz"
+              rm -f "/tmp/$NAME.tar.gz"
               echo "OK: $REPO"
           env:
             - name: MINIO_ACCESS_KEY
@@ -146,38 +195,3 @@ spec:
               cpu: 500m
               memory: 1Gi
 
-      - name: cleanup
-        container:
-          image: minio/mc:latest
-          command:
-            - /bin/sh
-            - -c
-            - |
-              set -e
-              echo "Configurando MinIO..."
-              mc alias set dest http://minio.minio.svc.cluster.local:9000 \
-                "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
-
-              echo "Removendo backups com mais de 30 dias..."
-              mc rm --recursive --force --older-than 720h \
-                dest/forgejo-backups/ || true
-
-              echo "Limpeza concluída!"
-          env:
-            - name: MINIO_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: forgejo-backup-credentials
-                  key: minio-access-key
-            - name: MINIO_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: forgejo-backup-credentials
-                  key: minio-secret-key
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 256Mi
