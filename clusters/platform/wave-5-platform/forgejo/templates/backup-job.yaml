@@ -1,0 +1,111 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: forgejo-backup
+  namespace: forgejo
+spec:
+  schedule: "0 2 * * *" # todo dia às 2h (antes do mirror MinIO às 3h)
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          volumes:
+            - name: forgejo-data
+              persistentVolumeClaim:
+                claimName: forgejo
+            - name: tmp
+              emptyDir: {}
+          containers:
+            - name: backup
+              image: codeberg.org/forgejo/forgejo:10.0
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+
+                  export FORGEJO_WORK_DIR=/tmp/forgejo
+                  export GITEA_WORK_DIR=/tmp/forgejo
+
+                  mkdir -p /tmp/forgejo/custom/conf \
+                            /tmp/forgejo/data/tmp/package-upload
+
+                  # Gera app.ini mínimo para o dump
+                  cat > /tmp/forgejo/custom/conf/app.ini <<EOINI
+                  [security]
+                  INSTALL_LOCK = true
+
+                  [database]
+                  DB_TYPE = postgres
+                  HOST = platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
+                  NAME = forgejo
+                  USER = forgejo
+                  PASSWD = ${DB_PASSWORD}
+
+                  [storage]
+                  STORAGE_TYPE = minio
+                  MINIO_ENDPOINT = minio.minio.svc.cluster.local:9000
+                  MINIO_BUCKET = forgejo
+                  MINIO_ACCESS_KEY_ID = ${MINIO_ACCESS_KEY}
+                  MINIO_SECRET_ACCESS_KEY = ${MINIO_SECRET_KEY}
+                  MINIO_USE_SSL = false
+                  EOINI
+
+                  BACKUP_FILE="/tmp/forgejo-backup-$(date +%Y%m%dT%H%M%S).zip"
+
+                  echo "Iniciando dump do Forgejo..."
+                  forgejo \
+                    --config /tmp/forgejo/custom/conf/app.ini \
+                    --work-path /tmp/forgejo \
+                    admin dump \
+                    --file "$BACKUP_FILE" \
+                    --skip-log \
+                    --type zip
+
+                  echo "Upload para MinIO bucket forgejo-backups..."
+                  mc alias set dest http://minio.minio.svc.cluster.local:9000 \
+                    "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
+
+                  mc cp "$BACKUP_FILE" "dest/forgejo-backups/$(basename $BACKUP_FILE)"
+
+                  echo "Removendo backups com mais de 30 dias..."
+                  mc rm --recursive --force --older-than 720h \
+                    dest/forgejo-backups/ || true
+
+                  echo "Backup concluído: $(basename $BACKUP_FILE)"
+              env:
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-credentials
+                      key: db-password
+                - name: MINIO_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-credentials
+                      key: minio-access-key
+                - name: MINIO_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-credentials
+                      key: minio-secret-key
+              volumeMounts:
+                - name: forgejo-data
+                  mountPath: /data
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
