@@ -49,6 +49,8 @@ spec:
                   echo "Removendo dump anterior..."
                   rm -f /backup/forgejo-dump.tar.zst
 
+                  mkdir -p /tmp/gitea
+
                   echo "Iniciando forgejo dump..."
                   forgejo dump \
                     --config /data/gitea/conf/app.ini \
