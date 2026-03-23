@@ -13,73 +13,13 @@ spec:
   workflowSpec:
     serviceAccountName: argo-workflow
     entrypoint: backup-all
-    parallelism: 30
+    parallelism: 100
     templates:
       - name: backup-all
         dag:
           tasks:
-            - name: list-owners
-              template: list-owners
-            - name: backup-owner
-              template: backup-owner
-              depends: list-owners
-              arguments:
-                parameters:
-                  - name: owner
-                    value: "{{`{{item}}`}}"
-              withParam: "{{`{{tasks.list-owners.outputs.result}}`}}"
-      - name: list-owners
-        container:
-          image: alpine:3.21
-          command:
-            - /bin/sh
-            - -c
-            - |
-              set -e
-              apk add --no-cache curl jq >/dev/null 2>&1
-
-              FORGEJO_URL="http://forgejo-http.forgejo.svc.cluster.local:3000"
-              PAGE=1
-              ALL_REPOS=""
-
-              while true; do
-                RESULT=$(curl -sf \
-                  -H "Authorization: token $FORGEJO_TOKEN" \
-                  "$FORGEJO_URL/api/v1/repos/search?limit=50&page=$PAGE" \
-                  | jq -r '.data[].full_name')
-                [ -z "$RESULT" ] && break
-                ALL_REPOS="$ALL_REPOS
-              $RESULT"
-                PAGE=$((PAGE + 1))
-              done
-
-              echo "$ALL_REPOS" | grep -v '^$' | cut -d'/' -f1 | sort -u | jq -Rc . | jq -sc .
-          env:
-            - name: FORGEJO_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: forgejo-backup-token
-                  key: token
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
-
-      - name: backup-owner
-        inputs:
-          parameters:
-            - name: owner
-        dag:
-          tasks:
             - name: list-repos
-              template: list-repos-by-owner
-              arguments:
-                parameters:
-                  - name: owner
-                    value: "{{`{{inputs.parameters.owner}}`}}"
+              template: list-repos
             - name: backup-repo
               template: backup-repo
               depends: list-repos
@@ -89,10 +29,7 @@ spec:
                     value: "{{`{{item}}`}}"
               withParam: "{{`{{tasks.list-repos.outputs.result}}`}}"
 
-      - name: list-repos-by-owner
-        inputs:
-          parameters:
-            - name: owner
+      - name: list-repos
         container:
           image: alpine:3.21
           command:
@@ -103,14 +40,13 @@ spec:
               apk add --no-cache curl jq >/dev/null 2>&1
 
               FORGEJO_URL="http://forgejo-http.forgejo.svc.cluster.local:3000"
-              OWNER="{{`{{inputs.parameters.owner}}`}}"
               PAGE=1
               REPOS="[]"
 
               while true; do
                 RESULT=$(curl -sf \
                   -H "Authorization: token $FORGEJO_TOKEN" \
-                  "$FORGEJO_URL/api/v1/repos/search?limit=50&page=$PAGE&owner=$OWNER" \
+                  "$FORGEJO_URL/api/v1/repos/search?limit=50&page=$PAGE" \
                   | jq -r '.data[].full_name')
                 [ -z "$RESULT" ] && break
                 REPOS=$(echo "$REPOS" | jq --arg r "$RESULT" '. + ($r | split("\n"))')
@@ -158,18 +94,18 @@ spec:
               echo "Clonando $REPO..."
               git clone --mirror \
                 "http://$FORGEJO_TOKEN@forgejo-http.forgejo.svc.cluster.local:3000/$REPO.git" \
-                "/tmp/$NAME.git"
+                "/tmp/repo.git"
 
-              tar -czf "/tmp/$NAME.tar.gz" \
-                -C /tmp "$NAME.git"
-              rm -rf "/tmp/$NAME.git"
+              tar -czf "/tmp/repo.tar.gz" \
+                -C /tmp "repo.git"
+              rm -rf "/tmp/repo.git"
 
               echo "Upload: $OWNER/$NAME.tar.gz"
               mc cp --disable-multipart \
-                "/tmp/$NAME.tar.gz" \
+                "/tmp/repo.tar.gz" \
                 "dest/forgejo-backups/$OWNER/$NAME.tar.gz"
 
-              rm -f "/tmp/$NAME.tar.gz"
+              rm -f "/tmp/repo.tar.gz"
               echo "OK: $REPO"
           env:
             - name: MINIO_ACCESS_KEY
@@ -194,4 +130,3 @@ spec:
             limits:
               cpu: 500m
               memory: 1Gi
-
