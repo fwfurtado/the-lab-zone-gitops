@@ -26,6 +26,13 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: forgejo
+                  topologyKey: kubernetes.io/hostname
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
