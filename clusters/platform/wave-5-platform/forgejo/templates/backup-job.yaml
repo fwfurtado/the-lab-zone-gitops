@@ -115,6 +115,8 @@ spec:
                   mountPath: /backup
                   readOnly: true
               env:
+                - name: HOME
+                  value: /tmp
                 - name: MINIO_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
