@@ -39,7 +39,7 @@ spec:
                 claimName: forgejo-backup-storage
           initContainers:
             - name: dump
-              image: code.forgejo.org/forgejo/forgejo:10.1.0-rootless
+              image: code.forgejo.org/forgejo/forgejo:9.0.1-rootless
               command:
                 - /bin/sh
                 - -c
