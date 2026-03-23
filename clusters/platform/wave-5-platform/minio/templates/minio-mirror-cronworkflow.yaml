@@ -30,7 +30,7 @@ spec:
                   - name: bucket
                     value: forgejo
             - name: mirror-forgejo-backups
-              template: mirror-bucket
+              template: mirror-bucket-large
               arguments:
                 parameters:
                   - name: bucket
