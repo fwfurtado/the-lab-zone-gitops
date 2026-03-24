@@ -30,7 +30,7 @@ spec:
                   - name: bucket
                     value: forgejo
             - name: mirror-forgejo-backups
-              template: mirror-bucket-large
+              template: mirror-bucket-huge
               arguments:
                 parameters:
                   - name: bucket
@@ -150,3 +150,55 @@ spec:
             limits:
               cpu: 500m
               memory: 1Gi
+
+      - name: mirror-bucket-huge
+        inputs:
+          parameters:
+            - name: bucket
+        container:
+          image: minio/mc:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              BUCKET="{{`{{inputs.parameters.bucket}}`}}"
+              echo "Configurando aliases..."
+              mc alias set source http://minio.minio.svc.cluster.local:9000 \
+                "$SOURCE_ACCESS_KEY" "$SOURCE_SECRET_KEY"
+              mc alias set dest http://10.40.1.20:9000 \
+                "$DEST_ACCESS_KEY" "$DEST_SECRET_KEY"
+              echo "Criando bucket $BUCKET no destino se nao existir..."
+              mc mb --ignore-existing "dest/$BUCKET"
+              echo "Espelhando bucket: $BUCKET"
+              mc mirror --overwrite --retry \
+                "source/$BUCKET" "dest/$BUCKET"
+              echo "Bucket $BUCKET concluido."
+          env:
+            - name: SOURCE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-mirror-credentials
+                  key: sourceAccessKey
+            - name: SOURCE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-mirror-credentials
+                  key: sourceSecretKey
+            - name: DEST_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-mirror-credentials
+                  key: destAccessKey
+            - name: DEST_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-mirror-credentials
+                  key: destSecretKey
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              cpu: 500m
+              memory: 2Gi
