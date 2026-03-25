@@ -3,6 +3,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: forgejo-backup-storage
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipHealthCheck=true
 spec:
   accessModes:
     - ReadWriteOnce
