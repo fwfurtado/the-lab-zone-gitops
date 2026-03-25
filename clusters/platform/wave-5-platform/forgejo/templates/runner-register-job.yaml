@@ -5,18 +5,12 @@ kind: ServiceAccount
 metadata:
   name: {{ $name }}
   namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ $name }}-forgejo
   namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 rules:
   - apiGroups:
       - ""
@@ -33,9 +27,6 @@ kind: RoleBinding
 metadata:
   name: {{ $name }}-forgejo
   namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -50,9 +41,6 @@ kind: Role
 metadata:
   name: {{ $name }}
   namespace: forgejo-runner
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 rules:
   - apiGroups:
       - ""
@@ -69,9 +57,6 @@ kind: RoleBinding
 metadata:
   name: {{ $name }}
   namespace: forgejo-runner
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
