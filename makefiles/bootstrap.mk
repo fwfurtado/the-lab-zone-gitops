@@ -80,7 +80,7 @@ bootstrap-seal-proxmox-csi-config:
 	openssl req -new -x509 -key $$tmp_key -out $$tmp_cert -subj "/CN=sealed-secrets"; \
 	TOKEN_ID=$$(op read "op://homelab/k8s proxmox csi/token-id"); \
 	CREDENTIAL=$$(op read "op://homelab/k8s proxmox csi/credential"); \
-	printf 'clusters:\n  - url: "https://10.40.0.200:8006/api2/json"\n    insecure: false\n    token_id: "%s"\n    token_secret: "%s"\n    region: "homelab"\n' "$$TOKEN_ID" "$$CREDENTIAL" > $$tmp_config; \
+	printf 'clusters:\n  - url: "https://10.40.0.200:8006/api2/json"\n    insecure: true\n    token_id: "%s"\n    token_secret: "%s"\n    region: "homelab"\n' "$$TOKEN_ID" "$$CREDENTIAL" > $$tmp_config; \
 	$(KUBECTL) -n csi-proxmox create secret generic proxmox-csi-config \
 		--from-file=config.yaml=$$tmp_config \
 		--dry-run=client -o yaml \
