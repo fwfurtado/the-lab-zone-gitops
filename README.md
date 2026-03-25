@@ -321,6 +321,32 @@ make oidc-hash PASSWORD=my-secret
 
 Requires Docker.
 
+### Initialize Infisical folders
+
+```bash
+# Terminal 1: port-forward to Infisical
+kubectl -n infisical port-forward svc/infisical-infisical-standalone-infisical 8080:8080
+
+# Terminal 2: create folders
+make infisical-init-folders
+```
+
+Creates all required folder paths in Infisical (project `homelab`, environments `prod`, `dev`, and `staging`). Uses the Machine Identity credentials already in the cluster. Run after Infisical is up and the Machine Identity is configured.
+
+### Populate Infisical secrets from 1Password
+
+```bash
+# Terminal 1: port-forward to Infisical
+kubectl -n infisical port-forward svc/infisical-infisical-standalone-infisical 8080:8080
+
+# Terminal 2: push secrets
+make infisical-push-secrets
+```
+
+Reads all secret values from 1Password (via `op inject`) and creates them in Infisical using the API. The template file (`bootstrap/infisical-secrets.tpl.json`) maps each Infisical secret path to a 1Password reference. Secrets that already exist are skipped.
+
+Run `make infisical-init-folders` first to ensure all folder paths exist.
+
 ### Re-seal 1Password token
 
 ```bash

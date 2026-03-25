@@ -47,6 +47,6 @@ spec:
             - name: RUNNER_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: forgejo-credentials
+                  name: forgejo-runner-secret
                   key: runner-secret
   backoffLimit: 3
