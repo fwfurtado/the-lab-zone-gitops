@@ -8,14 +8,4 @@ proxmox-csi-plugin:
     tolerations:
       - operator: "Exists"
 
-  storageClasses:
-    - name: proxmox-lvm
-      defaultClass: true
-      reclaimPolicy: Retain
-      volumeBindingMode: WaitForFirstConsumer
-      allowVolumeExpansion: true
-      parameters:
-        storage: local-ssd
-        fstype: ext4
-        cache: none
-        ssd: "true"
+  storageClass: []
