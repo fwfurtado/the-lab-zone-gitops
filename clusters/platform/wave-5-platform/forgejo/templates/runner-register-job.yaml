@@ -12,6 +12,42 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  name: {{ $name }}-forgejo
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/exec
+    verbs:
+      - get
+      - list
+      - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}-forgejo
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $name }}-forgejo
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
   name: {{ $name }}
   namespace: forgejo-runner
   annotations:
@@ -58,37 +94,20 @@ spec:
     spec:
       restartPolicy: Never
       serviceAccountName: {{ $name }}
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
       containers:
         - name: register
-          image: codeberg.org/forgejo/forgejo:10.0
+          image: docker.io/alpine/kubectl:1.35.2
           command:
             - sh
             - -c
             - |
               set -e
-              export FORGEJO_WORK_DIR=/tmp/forgejo
-              export GITEA_WORK_DIR=/tmp/forgejo
-              mkdir -p /tmp/forgejo/custom/conf /tmp/forgejo/data/tmp/package-upload
 
-              cat > /tmp/forgejo/custom/conf/app.ini <<EOINI
-              [security]
-              INSTALL_LOCK = true
-
-              [database]
-              DB_TYPE = postgres
-              HOST = platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
-              NAME = forgejo
-              USER = forgejo
-              PASSWD = ${DB_PASSWORD}
-              EOINI
+              echo "Waiting for Forgejo pod to be ready..."
+              kubectl -n {{ .Release.Namespace }} wait --for=condition=ready pod -l app.kubernetes.io/name=forgejo --timeout=120s
 
               echo "Generating runner token..."
-              TOKEN=$(forgejo --config /tmp/forgejo/custom/conf/app.ini \
-                --work-path /tmp/forgejo \
-                forgejo-cli actions generate-runner-token 2>/dev/null | tail -1)
+              TOKEN=$(kubectl -n {{ .Release.Namespace }} exec deploy/forgejo -c forgejo -- forgejo actions generate-runner-token 2>/dev/null)
 
               if [ -z "$TOKEN" ]; then
                 echo "Failed to generate runner token"
@@ -97,16 +116,8 @@ spec:
 
               echo "Runner token generated successfully"
 
-              echo "Registering runner..."
-              forgejo --config /tmp/forgejo/custom/conf/app.ini \
-                --work-path /tmp/forgejo \
-                forgejo-cli actions register \
-                --secret "$TOKEN" \
-                --name lab-runner \
-                --labels "docker"
-
-              echo "Saving runner token to secret in forgejo-runner namespace..."
-              cat > /tmp/secret.json <<EOJSON
+              echo "Saving runner token to forgejo-runner namespace..."
+              cat <<EOJSON | kubectl apply -f -
               {
                 "apiVersion": "v1",
                 "kind": "Secret",
@@ -121,16 +132,5 @@ spec:
               }
               EOJSON
 
-              # Install kubectl
-              wget -qO /tmp/kubectl "https://dl.k8s.io/release/v1.32.0/bin/linux/amd64/kubectl"
-              chmod +x /tmp/kubectl
-
-              /tmp/kubectl apply -f /tmp/secret.json
               echo "Runner token saved!"
-          env:
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: forgejo-credentials
-                  key: db-password
   backoffLimit: 3
