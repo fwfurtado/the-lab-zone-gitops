@@ -7,10 +7,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: {{ $name }}-forgejo
-  namespace: {{ .Release.Namespace }}
+  name: {{ $name }}
 rules:
   - apiGroups:
       - ""
@@ -21,27 +20,6 @@ rules:
       - get
       - list
       - create
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: {{ $name }}-forgejo
-  namespace: {{ .Release.Namespace }}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: {{ $name }}-forgejo
-subjects:
-  - kind: ServiceAccount
-    name: {{ $name }}
-    namespace: {{ .Release.Namespace }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: {{ $name }}
-  namespace: forgejo-runner
-rules:
   - apiGroups:
       - ""
     resources:
@@ -53,13 +31,12 @@ rules:
       - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: {{ $name }}
-  namespace: forgejo-runner
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: {{ $name }}
 subjects:
   - kind: ServiceAccount
