@@ -107,7 +107,7 @@ spec:
               kubectl -n {{ .Release.Namespace }} wait --for=condition=ready pod -l app.kubernetes.io/name=forgejo --timeout=120s
 
               echo "Generating runner token..."
-              TOKEN=$(kubectl -n {{ .Release.Namespace }} exec deploy/forgejo -c forgejo -- forgejo actions generate-runner-token 2>/dev/null)
+              TOKEN=$(kubectl -n {{ .Release.Namespace }} exec deploy/forgejo -c forgejo -- forgejo actions generate-runner-token)
 
               if [ -z "$TOKEN" ]; then
                 echo "Failed to generate runner token"
