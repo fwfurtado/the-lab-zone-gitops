@@ -74,17 +74,21 @@ spec:
               echo "Waiting for Forgejo pod to be ready..."
               kubectl -n {{ .Release.Namespace }} wait --for=condition=ready pod -l app.kubernetes.io/name=forgejo --timeout=120s
 
-              echo "Generating runner token..."
-              TOKEN=$(kubectl -n {{ .Release.Namespace }} exec deploy/forgejo -c forgejo -- forgejo actions generate-runner-token)
+              echo "Generating runner secret..."
+              TOKEN=$(kubectl -n {{ .Release.Namespace }} exec deploy/forgejo -c forgejo -- forgejo forgejo-cli actions generate-secret)
+
+              echo "Registering runner..."
+              kubectl -n {{ .Release.Namespace }} exec deploy/forgejo -c forgejo -- \
+                forgejo forgejo-cli actions register --secret "$TOKEN" --name lab-runner --labels docker || true
 
               if [ -z "$TOKEN" ]; then
-                echo "Failed to generate runner token"
+                echo "Failed to generate runner secret"
                 exit 1
               fi
 
-              echo "Runner token generated successfully"
+              echo "Runner secret generated: ${TOKEN:0:8}..."
 
-              echo "Saving runner token to forgejo-runner namespace..."
+              echo "Saving runner secret to forgejo-runner namespace..."
               cat <<EOJSON | kubectl apply -f -
               {
                 "apiVersion": "v1",
