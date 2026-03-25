@@ -1,18 +1,3 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: forgejo-backup-storage
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/sync-options: SkipHealthCheck=true
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: proxmox-lvm
-  resources:
-    requests:
-      storage: 10Gi
----
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -44,8 +29,8 @@ spec:
               persistentVolumeClaim:
                 claimName: gitea-shared-storage
             - name: backup
-              persistentVolumeClaim:
-                claimName: forgejo-backup-storage
+              emptyDir:
+                sizeLimit: 10Gi
           initContainers:
             - name: dump
               image: code.forgejo.org/forgejo/forgejo:9.0.1-rootless
