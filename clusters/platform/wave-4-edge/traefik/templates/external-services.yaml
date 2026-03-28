@@ -54,6 +54,6 @@ spec:
           serversTransport: external-https-skip-verify
           {{- end }}
   tls:
-    secretName: infra-wildcard-tls
+    secretName: {{ .tlsSecretName | default "infra-wildcard-tls" }}
 {{- end }}
 {{- end }}

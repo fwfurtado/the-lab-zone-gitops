@@ -30,6 +30,7 @@ externalServices:
     ip: "10.40.1.20"
     port: 9000
     scheme: http
+    tlsSecretName: aistor-infra-wildcard-tls
 
 traefik:
   deployment:
