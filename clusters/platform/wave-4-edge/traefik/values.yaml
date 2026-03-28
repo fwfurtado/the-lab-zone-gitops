@@ -23,7 +23,7 @@ externalServices:
   - name: aistor
     host: aistor.infra.the-lab.zone
     ip: "10.40.1.20"
-    port: 9003
+    port: 9002
     scheme: http
   - name: aistor-s3
     host: s3.aistor.infra.the-lab.zone
