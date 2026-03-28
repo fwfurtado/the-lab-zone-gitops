@@ -20,6 +20,16 @@ externalServices:
     ip: "192.168.20.2"
     port: 8123
     scheme: http
+  - name: aistor
+    host: aistor.infra.the-lab.zone
+    ip: "10.40.1.20"
+    port: 9003
+    scheme: http
+  - name: aistor-s3
+    host: s3.aistor.infra.the-lab.zone
+    ip: "10.40.1.20"
+    port: 9000
+    scheme: http
 
 traefik:
   deployment:
