@@ -88,7 +88,7 @@ authelia:
     storage:
       postgres:
         enabled: true
-        address: tcp://platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
+        address: tcp://pg.the-lab.zone:5432
         database: authelia
         username: authelia
         tls:

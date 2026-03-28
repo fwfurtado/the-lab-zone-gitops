@@ -43,7 +43,7 @@ bootstrap-seal-infisical-secrets:
 		--from-literal=AUTH_SECRET="$$AUTH_SECRET" \
 		--from-literal=ROOT_ENCRYPTION_KEY="$$ROOT_ENCRYPTION_KEY" \
 		--from-literal=SITE_URL="https://infisical.infra.the-lab.zone" \
-		--from-literal=DB_CONNECTION_URI="postgresql://infisical:$${INFISICAL_DB_PASSWORD}@platform-postgres-rw.cloudnativepg.svc.cluster.local:5432/infisicalDB" \
+		--from-literal=DB_CONNECTION_URI="postgresql://infisical:$${INFISICAL_DB_PASSWORD}@pg.the-lab.zone:5432/infisicalDB" \
 		--dry-run=client -o yaml \
 	| kubeseal --format yaml --cert $$tmp_cert \
 	> clusters/platform/wave-3-secrets/infisical/templates/infisical-secrets-sealedsecret.yaml; \
@@ -133,7 +133,7 @@ bootstrap-seal-coder-db-url:
 	openssl req -new -x509 -key $$tmp_key -out $$tmp_cert -subj "/CN=sealed-secrets"; \
 	CODER_PW=$$(op read "op://homelab/Coder Database/password"); \
 	$(KUBECTL) -n coder create secret generic coder-db-url \
-		--from-literal=url="postgres://coder:$${CODER_PW}@platform-postgres-rw.cloudnativepg.svc.cluster.local:5432/coder?sslmode=disable" \
+		--from-literal=url="postgres://coder:$${CODER_PW}@pg.the-lab.zone:5432/coder?sslmode=disable" \
 		--dry-run=client -o yaml \
 	| kubeseal --format yaml --cert $$tmp_cert \
 	> clusters/platform/wave-5-platform/coder/templates/coder-db-url-sealedsecret.yaml; \

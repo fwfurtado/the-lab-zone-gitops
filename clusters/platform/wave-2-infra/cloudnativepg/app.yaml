@@ -1,4 +1,0 @@
-app:
-  name: cloudnativepg
-  namespace: cloudnativepg
-  syncWave: "2"

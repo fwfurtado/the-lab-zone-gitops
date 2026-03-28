@@ -21,7 +21,7 @@ forgejo:
         SSH_PORT: 22
       database:
         DB_TYPE: postgres
-        HOST: platform-postgres-rw.cloudnativepg.svc.cluster.local:5432
+        HOST: pg.the-lab.zone:5432
         NAME: forgejo
         USER: forgejo
       cache:

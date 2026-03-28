@@ -23,6 +23,8 @@ data:
     nas      IN A   10.40.0.4
     haos     IN A   192.168.20.2
     rustdesk IN A   10.40.2.10
+    ; Virtual Machines
+    pg      IN A   10.40.1.75
     ; Cluster service wildcards — Traefik handles routing via IngressRoute
     *.platform  IN A   10.40.2.1
     *.infra     IN A   10.40.2.1
