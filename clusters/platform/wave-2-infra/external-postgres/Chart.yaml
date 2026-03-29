@@ -1,0 +1,3 @@
+apiVersion: v2
+name: external-postgres
+version: 0.0.0

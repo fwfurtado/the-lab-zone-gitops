@@ -88,7 +88,7 @@ authelia:
     storage:
       postgres:
         enabled: true
-        address: tcp://pg.the-lab.zone:5432
+        address: tcp://postgres.database.svc.cluster.local:5432
         database: authelia
         username: authelia
         tls:
