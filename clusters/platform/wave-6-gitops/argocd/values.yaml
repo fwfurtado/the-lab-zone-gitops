@@ -52,5 +52,5 @@ argo-cd:
     rbac:
       policy.default: role:readonly
       policy.csv: |
-        g, sre, role:admin
+        g, sres, role:admin
       scopes: "[groups, email]"
