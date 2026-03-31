@@ -24,7 +24,7 @@ velero:
         config:
           region: us-east-1
           s3ForcePathStyle: "true"
-          s3Url: http://minio.minio.svc.cluster.local:9000
+          s3Url: http://10.40.1.20:9000
 
   schedules:
     daily-full-backup:

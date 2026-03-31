@@ -35,7 +35,7 @@ forgejo:
         CONN_STR: redis://valkey-primary.valkey.svc.cluster.local:6379/2
       storage:
         STORAGE_TYPE: minio
-        MINIO_ENDPOINT: minio.minio.svc.cluster.local:9000
+        MINIO_ENDPOINT: 10.40.1.20:9000
         MINIO_BUCKET: forgejo
         MINIO_USE_SSL: "false"
       security:

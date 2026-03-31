@@ -84,7 +84,7 @@ spec:
                   BACKUP_DATE=$(date +%Y%m%dT%H%M%S)
 
                   echo "Configurando MinIO..."
-                  mc alias set dest http://minio.minio.svc.cluster.local:9000 \
+                  mc alias set dest http://10.40.1.20:9000 \
                     "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
 
                   echo "Fazendo upload do dump..."
