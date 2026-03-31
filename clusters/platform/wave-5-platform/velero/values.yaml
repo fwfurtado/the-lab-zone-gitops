@@ -39,6 +39,11 @@ velero:
           - kube-public
           - kube-node-lease
 
+  kubectl:
+    image:
+      repository: docker.io/bitnami/kubectl
+      tag: "1.32"
+
   snapshotsEnabled: false
   deployNodeAgent: false
 
