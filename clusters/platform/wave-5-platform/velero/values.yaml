@@ -41,8 +41,8 @@ velero:
 
   kubectl:
     image:
-      repository: docker.io/bitnami/kubectl
-      tag: latest
+      repository: docker.io/alpine/kubectl
+      tag: "1.35.3"
 
   snapshotsEnabled: false
   deployNodeAgent: false
