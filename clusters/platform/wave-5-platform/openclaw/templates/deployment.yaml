@@ -33,8 +33,9 @@ spec:
             - sh
             - -c
             - |
-              cp /config/openclaw.json /home/node/.openclaw/openclaw.json
               mkdir -p /home/node/.openclaw/workspace
+              rm -f /home/node/.openclaw/openclaw.json /home/node/.openclaw/openclaw.json.bak /home/node/.openclaw/openclaw.json.bak.* /home/node/.openclaw/openclaw.json.last-good /home/node/.openclaw/openclaw.json.clobbered.*
+              cp /config/openclaw.json /home/node/.openclaw/openclaw.json
               cp /config/AGENTS.md /home/node/.openclaw/workspace/AGENTS.md
           securityContext:
             runAsUser: 1000
