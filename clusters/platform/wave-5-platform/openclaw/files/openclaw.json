@@ -9,9 +9,7 @@
     "controlUi": {
       "enabled": true,
       "dangerouslyDisableDeviceAuth": true,
-      "allowedOrigins": [
-        "https://openclaw.platform.the-lab.zone"
-      ]
+      "allowedOrigins": ["https://openclaw.platform.the-lab.zone"]
     }
   },
   "models": {
@@ -20,7 +18,162 @@
         "baseUrl": "http://10.40.1.30:11434",
         "apiKey": "ollama-local",
         "api": "ollama",
-        "models": []
+        "models": [
+          {
+            "id": "qwen2.5-coder:14b",
+            "name": "Qwen 2.5 Coder 14B",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 32768
+          },
+          {
+            "id": "qwen2.5-coder:7b",
+            "name": "Qwen 2.5 Coder 7B",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 32768
+          },
+          {
+            "id": "qwen2.5-coder:32b",
+            "name": "Qwen 2.5 Coder 32B",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 32768
+          },
+          {
+            "id": "qwen2.5:14b",
+            "name": "Qwen 2.5 14B",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 32768
+          },
+          {
+            "id": "qwen3:14b",
+            "name": "Qwen3 14B",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 32768
+          },
+          {
+            "id": "qwen3:30b",
+            "name": "Qwen3 30B",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 32768
+          },
+          {
+            "id": "deepseek-r1:14b",
+            "name": "DeepSeek R1 14B",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 32768
+          },
+          {
+            "id": "deepseek-r1:32b",
+            "name": "DeepSeek R1 32B",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 32768
+          },
+          {
+            "id": "mistral-nemo:latest",
+            "name": "Mistral Nemo",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 128000
+          },
+          {
+            "id": "gemma3:12b",
+            "name": "Gemma 3 12B",
+            "reasoning": false,
+            "input": ["text", "image"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 131072,
+            "maxTokens": 131072
+          },
+          {
+            "id": "nomic-embed-text:latest",
+            "name": "Nomic Embed Text",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 8192,
+            "maxTokens": 8192
+          }
+        ]
       }
     }
   },
