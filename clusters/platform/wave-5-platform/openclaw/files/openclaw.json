@@ -14,6 +14,15 @@
       ]
     }
   },
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://10.40.1.30:11434",
+        "apiKey": "ollama-local",
+        "api": "ollama"
+      }
+    }
+  },
   "agents": {
     "defaults": {
       "workspace": "~/.openclaw/workspace"
