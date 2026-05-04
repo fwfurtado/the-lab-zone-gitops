@@ -1,0 +1,4 @@
+app:
+  name: openclaw
+  namespace: openclaw
+  syncWave: "5"

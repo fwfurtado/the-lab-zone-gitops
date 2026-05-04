@@ -1,0 +1,94 @@
+suite: openclaw
+templates:
+  - templates/configmap.yaml
+  - templates/deployment.yaml
+  - templates/external-secret.yaml
+  - templates/ingressroute.yaml
+  - templates/pvc.yaml
+  - templates/service.yaml
+release:
+  name: openclaw
+  namespace: openclaw
+tests:
+  - it: creates a cluster-internal gateway service
+    template: templates/service.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: openclaw
+      - equal:
+          path: metadata.namespace
+          value: openclaw
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 18789
+
+  - it: creates persistent home storage on proxmox lvm
+    template: templates/pvc.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: openclaw-home
+      - equal:
+          path: spec.storageClassName
+          value: proxmox-lvm
+      - equal:
+          path: spec.resources.requests.storage
+          value: 10Gi
+
+  - it: wires config and secrets into the gateway pod
+    template: templates/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/openclaw/openclaw:slim
+      - equal:
+          path: spec.template.spec.containers[0].env[3].valueFrom.secretKeyRef.name
+          value: openclaw-secrets
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: openclaw-home
+
+  - it: creates infisical external secret
+    template: templates/external-secret.yaml
+    asserts:
+      - equal:
+          path: spec.secretStoreRef.name
+          value: infisical
+      - equal:
+          path: spec.target.name
+          value: openclaw-secrets
+      - equal:
+          path: spec.data[0].remoteRef.key
+          value: /openclaw/gateway-token
+
+  - it: creates platform ingress route
+    template: templates/ingressroute.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: openclaw
+      - equal:
+          path: spec.entryPoints[0]
+          value: websecure
+      - equal:
+          path: spec.routes[0].match
+          value: Host(`openclaw.platform.the-lab.zone`)
+      - equal:
+          path: spec.routes[0].services[0].name
+          value: openclaw
+      - equal:
+          path: spec.routes[0].services[0].port
+          value: 18789
+      - equal:
+          path: spec.tls.secretName
+          value: platform-wildcard-tls

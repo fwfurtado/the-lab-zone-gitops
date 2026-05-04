@@ -82,6 +82,7 @@ INFISICAL_FOLDERS := \
 	/grafana \
 	/minio \
 	/minio-truenas \
+	/openclaw \
 	/rustdesk \
 	/valkey
 
