@@ -8,6 +8,7 @@
     },
     "controlUi": {
       "enabled": true,
+      "dangerouslyDisableDeviceAuth": true,
       "allowedOrigins": [
         "https://openclaw.platform.the-lab.zone"
       ]
