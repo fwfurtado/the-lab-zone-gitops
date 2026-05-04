@@ -34,48 +34,6 @@
             "maxTokens": 32768
           },
           {
-            "id": "qwen2.5-coder:7b",
-            "name": "Qwen 2.5 Coder 7B",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 32768,
-            "maxTokens": 32768
-          },
-          {
-            "id": "qwen2.5-coder:32b",
-            "name": "Qwen 2.5 Coder 32B",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 32768,
-            "maxTokens": 32768
-          },
-          {
-            "id": "qwen2.5:14b",
-            "name": "Qwen 2.5 14B",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 32768,
-            "maxTokens": 32768
-          },
-          {
             "id": "qwen3:14b",
             "name": "Qwen3 14B",
             "reasoning": true,
@@ -90,36 +48,8 @@
             "maxTokens": 32768
           },
           {
-            "id": "qwen3:30b",
-            "name": "Qwen3 30B",
-            "reasoning": true,
-            "input": ["text"],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 32768,
-            "maxTokens": 32768
-          },
-          {
             "id": "deepseek-r1:14b",
             "name": "DeepSeek R1 14B",
-            "reasoning": true,
-            "input": ["text"],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 32768,
-            "maxTokens": 32768
-          },
-          {
-            "id": "deepseek-r1:32b",
-            "name": "DeepSeek R1 32B",
             "reasoning": true,
             "input": ["text"],
             "cost": {
@@ -158,20 +88,6 @@
             },
             "contextWindow": 131072,
             "maxTokens": 131072
-          },
-          {
-            "id": "nomic-embed-text:latest",
-            "name": "Nomic Embed Text",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 8192,
-            "maxTokens": 8192
           }
         ]
       }
