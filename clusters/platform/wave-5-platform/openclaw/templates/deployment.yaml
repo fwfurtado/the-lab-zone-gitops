@@ -108,24 +108,25 @@ spec:
             limits:
               cpu: "1"
               memory: 2Gi
-          livenessProbe:
-            exec:
-              command:
-                - node
-                - -e
-                - "require('http').get('http://127.0.0.1:18789/healthz', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))"
-            initialDelaySeconds: 60
-            periodSeconds: 30
-            timeoutSeconds: 10
-          readinessProbe:
-            exec:
-              command:
-                - node
-                - -e
-                - "require('http').get('http://127.0.0.1:18789/readyz', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))"
-            initialDelaySeconds: 15
-            periodSeconds: 10
+          startupProbe:
+            tcpSocket:
+              port: gateway
+            periodSeconds: 5
             timeoutSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            tcpSocket:
+              port: gateway
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: gateway
+            periodSeconds: 15
+            timeoutSeconds: 15
+            failureThreshold: 6
           volumeMounts:
             - name: openclaw-home
               mountPath: /home/node/.openclaw
