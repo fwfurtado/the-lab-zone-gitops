@@ -35,8 +35,10 @@ spec:
             - -c
             - |
               mkdir -p /home/node/.openclaw/workspace
+              chmod 700 /home/node/.openclaw
               rm -vf /home/node/.openclaw/openclaw.json*
               cp -v /config/openclaw.json /home/node/.openclaw/openclaw.json
+              chmod 600 /home/node/.openclaw/openclaw.json
               for f in AGENTS.md SOUL.md IDENTITY.md USER.md TOOLS.md; do
                   rm -vf "/home/node/.openclaw/workspace/$f"
                   cp -v "/config/$f" "/home/node/.openclaw/workspace/$f"
