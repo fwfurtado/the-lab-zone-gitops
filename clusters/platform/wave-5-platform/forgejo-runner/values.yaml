@@ -12,6 +12,7 @@ forgejo-runner:
           envs:
             DOCKER_HOST: tcp://localhost:2376
             DOCKER_TLS_VERIFY: ""
+            DOCKER_TLS_CERTDIR: ""
           labels:
             - "ubuntu-latest:docker://registry.infra.the-lab.zone/dockerhub/library/node:22-bookworm"
             - "docker:docker://registry.infra.the-lab.zone/internal/runner-base:latest"
@@ -32,6 +33,8 @@ forgejo-runner:
 
   dind:
     enabled: true
+    env:
+      DOCKER_TLS_CERTDIR: ""
     resources:
       requests:
         cpu: 200m
