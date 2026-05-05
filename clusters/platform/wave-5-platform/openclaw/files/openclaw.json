@@ -100,13 +100,15 @@
   },
   "agents": {
     "defaults": {
-      "workspace": "~/.openclaw/workspace"
+      "workspace": "~/.openclaw/workspace",
+      "model": "ollama/qwen2.5-coder:14b"
     },
     "list": [
       {
         "id": "default",
         "name": "OpenClaw Assistant",
-        "workspace": "~/.openclaw/workspace"
+        "workspace": "~/.openclaw/workspace",
+        "model": "ollama/qwen2.5-coder:14b"
       }
     ]
   },
