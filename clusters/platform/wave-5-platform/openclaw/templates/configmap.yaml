@@ -3,10 +3,16 @@ kind: ConfigMap
 metadata:
   name: openclaw-config
   namespace: openclaw
-  labels:
-    app.kubernetes.io/name: openclaw
 data:
   openclaw.json: |
     {{- .Files.Get "files/openclaw.json" | nindent 4 }}
   AGENTS.md: |
     {{- .Files.Get "files/AGENTS.md" | nindent 4 }}
+  SOUL.md: |
+    {{- .Files.Get "files/SOUL.md" | nindent 4 }}
+  IDENTITY.md: |
+    {{- .Files.Get "files/IDENTITY.md" | nindent 4 }}
+  USER.md: |
+    {{- .Files.Get "files/USER.md" | nindent 4 }}
+  TOOLS.md: |
+    {{- .Files.Get "files/TOOLS.md" | nindent 4 }}

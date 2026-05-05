@@ -34,9 +34,12 @@ spec:
             - -c
             - |
               mkdir -p /home/node/.openclaw/workspace
-              rm -f /home/node/.openclaw/openclaw.json /home/node/.openclaw/openclaw.json.bak /home/node/.openclaw/openclaw.json.bak.* /home/node/.openclaw/openclaw.json.last-good /home/node/.openclaw/openclaw.json.clobbered.*
+              rm -f /home/node/.openclaw/openclaw.json*
               cp /config/openclaw.json /home/node/.openclaw/openclaw.json
-              cp /config/AGENTS.md /home/node/.openclaw/workspace/AGENTS.md
+              for f in AGENTS.md SOUL.md IDENTITY.md USER.md TOOLS.md; do
+                [ ! -f "/home/node/.openclaw/workspace/$f" ] && \
+                  cp "/config/$f" "/home/node/.openclaw/workspace/$f" || true
+              done
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000

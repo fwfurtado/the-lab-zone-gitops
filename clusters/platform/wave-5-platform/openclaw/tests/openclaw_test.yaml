@@ -91,4 +91,4 @@ tests:
           value: 18789
       - equal:
           path: spec.tls.secretName
-          value: infra-wildcard-tls
+          value: platform-wildcard-tls
