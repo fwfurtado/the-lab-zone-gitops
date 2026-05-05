@@ -3,14 +3,9 @@
     "mode": "local",
     "bind": "lan",
     "port": 18789,
-    "trustedProxies": ["10.0.0.0/8"],
     "auth": {
-      "mode": "trusted-proxy",
-      "trustedProxy": {
-        "userHeader": "x-authentik-email",
-        "requiredHeaders": ["x-forwarded-proto"],
-        "allowUsers": ["[email protected]"]
-      }
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
     },
     "controlUi": {
       "enabled": true,
