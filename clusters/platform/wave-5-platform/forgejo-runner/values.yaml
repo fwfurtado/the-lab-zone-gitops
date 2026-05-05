@@ -12,7 +12,7 @@ forgejo-runner:
           envs: {}
           labels:
             - "ubuntu-latest:docker://registry.infra.the-lab.zone/dockerhub/library/node:22-bookworm"
-            - "docker:docker://registry.infra.the-lab.zone/dockerhub/library/docker:27-cli"
+            - "docker:docker://registry.infra.the-lab.zone/internal/runner-base:latest"
 
   tolerations:
     - key: "workload/forgejo-actions"
