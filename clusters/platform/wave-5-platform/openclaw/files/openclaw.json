@@ -3,8 +3,14 @@
     "mode": "local",
     "bind": "lan",
     "port": 18789,
+    "trustedProxies": ["10.0.0.0/8"],
     "auth": {
-      "mode": "trusted-proxy"
+      "mode": "trusted-proxy",
+      "trustedProxy": {
+        "userHeader": "x-authentik-email",
+        "requiredHeaders": ["x-forwarded-proto"],
+        "allowUsers": ["[email protected]"]
+      }
     },
     "controlUi": {
       "enabled": true,
