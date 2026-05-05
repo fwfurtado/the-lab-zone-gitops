@@ -10,12 +10,18 @@ forgejo-runner:
           capacity: 4
           fetch_interval: 30s
           envs:
-            DOCKER_HOST: tcp://localhost:2376
-            DOCKER_TLS_VERIFY: ""
-            DOCKER_TLS_CERTDIR: ""
+            DOCKER_HOST: tcp://127.0.0.1:2376
+            DOCKER_TLS_VERIFY: "1"
+            DOCKER_CERT_PATH: /certs/client
           labels:
             - "ubuntu-latest:docker://registry.infra.the-lab.zone/dockerhub/library/node:22-bookworm"
             - "docker:docker://registry.infra.the-lab.zone/internal/runner-base:latest"
+        container:
+          network: host
+          privileged: false
+          options: -v /certs/client:/certs/client
+          valid_volumes:
+            - /certs/client
 
   tolerations:
     - key: "workload/forgejo-actions"
@@ -33,8 +39,6 @@ forgejo-runner:
 
   dind:
     enabled: true
-    env:
-      DOCKER_TLS_CERTDIR: ""
     resources:
       requests:
         cpu: 200m
