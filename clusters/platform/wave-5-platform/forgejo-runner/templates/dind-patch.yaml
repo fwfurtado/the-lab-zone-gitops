@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgejo-runner
+  namespace: forgejo-runner
+spec:
+  template:
+    spec:
+      containers:
+        - name: dind
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
