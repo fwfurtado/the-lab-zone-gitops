@@ -7,6 +7,11 @@
       "mode": "token",
       "token": "${OPENCLAW_GATEWAY_TOKEN}"
     },
+    "nodes": {
+      "pairing": {
+        "autoApproveCidrs": ["10.40.0.0/21"]
+      }
+    },
     "controlUi": {
       "enabled": true,
       "allowedOrigins": ["https://openclaw.platform.the-lab.zone"]
