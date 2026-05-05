@@ -34,11 +34,11 @@ spec:
             - -c
             - |
               mkdir -p /home/node/.openclaw/workspace
-              rm -f /home/node/.openclaw/openclaw.json*
-              cp /config/openclaw.json /home/node/.openclaw/openclaw.json
+              rm -vf /home/node/.openclaw/openclaw.json*
+              cp -v /config/openclaw.json /home/node/.openclaw/openclaw.json
               for f in AGENTS.md SOUL.md IDENTITY.md USER.md TOOLS.md; do
-                [ ! -f "/home/node/.openclaw/workspace/$f" ] && \
-                  cp "/config/$f" "/home/node/.openclaw/workspace/$f" || true
+                  rm -vf "/home/node/.openclaw/workspace/$f"
+                  cp -v "/config/$f" "/home/node/.openclaw/workspace/$f"
               done
           securityContext:
             runAsUser: 1000
