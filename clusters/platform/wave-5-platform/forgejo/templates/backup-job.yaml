@@ -10,6 +10,7 @@ spec:
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
+      activeDeadlineSeconds: 1800
       template:
         spec:
           restartPolicy: OnFailure
@@ -88,7 +89,7 @@ spec:
                     "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
 
                   echo "Fazendo upload do dump..."
-                  mc cp --disable-multipart \
+                  mc cp \
                     /backup/forgejo-dump.tar.zst \
                     "dest/forgejo-backups/forgejo-dump-${BACKUP_DATE}.tar.zst"
 
@@ -117,7 +118,7 @@ spec:
               resources:
                 requests:
                   cpu: 100m
-                  memory: 128Mi
+                  memory: 256Mi
                 limits:
                   cpu: 500m
-                  memory: 256Mi
+                  memory: 512Mi
