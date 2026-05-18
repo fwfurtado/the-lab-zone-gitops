@@ -98,10 +98,27 @@
       }
     }
   },
+  "memory": {
+    "backend": "builtin"
+  },
   "agents": {
     "defaults": {
       "workspace": "~/.openclaw/workspace",
-      "model": "ollama/qwen2.5-coder:14b"
+      "model": "ollama/qwen2.5-coder:14b",
+      "memorySearch": {
+        "provider": "ollama",
+        "model": "nomic-embed-text",
+        "query": {
+          "hybrid": {
+            "vectorWeight": 0.7,
+            "textWeight": 0.3,
+            "temporalDecay": {
+              "enabled": true,
+              "halfLifeDays": 30
+            }
+          }
+        }
+      }
     },
     "list": [
       {
@@ -119,6 +136,15 @@
     "entries": {
       "ollama": {
         "enabled": true
+      },
+      "memory-core": {
+        "config": {
+          "dreaming": {
+            "enabled": true,
+            "frequency": "0 3 * * *",
+            "model": "ollama/qwen2.5-coder:14b"
+          }
+        }
       }
     }
   },
