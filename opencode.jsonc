@@ -1,0 +1,41 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "mcp": {
+    // npm install -g kubectl-mcp-server
+    "kubectl": {
+      "type": "local",
+      "command": ["kubectl-mcp-server", "--transport", "stdio", "--access-level", "readwrite", "--additional-tools", "helm,cilium"],
+      "environment": {
+        "KUBECONFIG": "${KUBECONFIG}"
+      },
+      "enabled": true
+    },
+    // https://github.com/Azure/mcp-kubernetes/releases
+    "kubectl-readonly": {
+      "type": "local",
+      "command": ["mcp-kubernetes", "--transport", "stdio", "--access-level", "readonly", "--additional-tools", "helm"],
+      "environment": {
+        "KUBECONFIG": "${KUBECONFIG}"
+      },
+      "enabled": true
+    }
+  },
+
+  "permission": {
+    "read": "allow",
+    "edit": "ask",
+    "bash": {
+      "*": "ask",
+      "rtk *": "allow",
+      "kubectl get *": "allow",
+      "kubectl describe *": "allow",
+      "kubectl logs *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "grep *": "allow",
+      "helm *": "allow",
+      "git *": "allow"
+    }
+  }
+}
