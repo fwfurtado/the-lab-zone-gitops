@@ -30,7 +30,7 @@ spec:
                 claimName: gitea-shared-storage
             - name: backup
               emptyDir:
-                sizeLimit: 10Gi
+                sizeLimit: 20Gi
           initContainers:
             - name: dump
               image: code.forgejo.org/forgejo/forgejo:9.0.1-rootless
