@@ -14,6 +14,11 @@ argo-cd:
       enabled: true
       serviceMonitor:
         enabled: true
+    # NOTE: ArgoCD 3.x copyutil init container has a bug (ln -s fails if symlink
+    # exists). Fix by patching the live deployment:
+    #   kubectl patch deployment -n argocd argocd-repo-server --type json \
+    #     -p '[{"op":"replace","path":"/spec/template/spec/initContainers/0/args/0",
+    #          "value":"/bin/cp --update=none /usr/local/bin/argocd /var/run/argocd/argocd && /bin/ln -sf /var/run/argocd/argocd /var/run/argocd/argocd-cmp-server"}]'
   dex:
     enabled: true
   configs:
@@ -32,6 +37,9 @@ argo-cd:
             - EndpointSlice
           clusters:
             - "*"
+      # Disable the dangerous "ignore /status on all resources" setting that
+      # was breaking health evaluation (forgejo stayed Degraded forever).
+      "resource.customizations.ignoreResourceUpdates.all": ""
       dex.config: |
         connectors:
           - type: oidc
