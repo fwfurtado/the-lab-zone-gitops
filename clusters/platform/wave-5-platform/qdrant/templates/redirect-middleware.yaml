@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: qdrant-redirect-dashboard
+  namespace: qdrant
+spec:
+  redirectRegex:
+    regex: "^/$"
+    replacement: "/dashboard"
+    permanent: false
