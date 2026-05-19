@@ -1,0 +1,29 @@
+qdrant:
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName: proxmox-lvm
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+
+  metrics:
+    serviceMonitor:
+      enabled: true
+
+  config:
+    storage:
+      on_disk_payload: true   # payload (metadados, textos) no disco, não na RAM
+    service:
+      enable_tls: false       # assumindo que o ingress/mTLS já cuida disso
+
+  # Readiness/liveness — o chart expõe isso
+  livenessProbe:
+    initialDelaySeconds: 30   # Qdrant pode ser lento no primeiro boot com índices grandes
+  readinessProbe:
+    initialDelaySeconds: 15

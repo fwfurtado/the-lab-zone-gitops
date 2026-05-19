@@ -31,10 +31,16 @@
       "kubectl get *": "allow",
       "kubectl describe *": "allow",
       "kubectl logs *": "allow",
+      "ls *": "allow",
+      "echo *": "allow",
       "head *": "allow",
       "tail *": "allow",
       "grep *": "allow",
       "helm *": "allow",
+      "sort *": "allow",
+      "uniq *": "allow",
+      "wc *": "allow",
+      "cat *": "allow",
       "git *": "allow"
     }
   }
