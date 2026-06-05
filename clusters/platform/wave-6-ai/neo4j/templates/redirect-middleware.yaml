@@ -1,0 +1,11 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: "{{ .Values.ingress.rootRedirectMiddlewareName }}"
+  namespace: "{{ .Release.Namespace }}"
+spec:
+  redirectRegex:
+    regex: "^https://{{ .Values.ingress.host }}/$"
+    replacement: "https://{{ .Values.ingress.host }}/browser/"
+    permanent: false

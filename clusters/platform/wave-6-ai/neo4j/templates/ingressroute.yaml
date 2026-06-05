@@ -15,6 +15,7 @@ spec:
           namespace: "{{ .Values.ingress.headersMiddlewareNamespace }}"
         - name: "{{ .Values.ingress.autheliaMiddlewareName }}"
           namespace: "{{ .Values.ingress.autheliaMiddlewareNamespace }}"
+        - name: "{{ .Values.ingress.rootRedirectMiddlewareName }}"
       services:
         - name: neo4j
           port: 7474
