@@ -6,6 +6,6 @@ metadata:
   namespace: "{{ .Release.Namespace }}"
 spec:
   redirectRegex:
-    regex: "^https://{{ .Values.ingress.host }}/$"
+    regex: "^https?://{{ .Values.ingress.host }}/?$"
     replacement: "https://{{ .Values.ingress.host }}/browser/"
     permanent: false
