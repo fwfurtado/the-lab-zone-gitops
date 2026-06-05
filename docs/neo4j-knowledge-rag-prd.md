@@ -286,6 +286,7 @@ Requisitos de configuracao:
 - Acesso externo via Traefik.
 - Sem middleware de Authelia no Browser.
 - Sem redirect automatico de `/` para `/browser/`, para preservar o discovery JSON usado pelo protocolo `https://` do Neo4j Browser.
+- Neo4j deve aceitar headers `X-Forwarded-*` do Traefik para `neo4j.platform.the-lab.zone`.
 - Bolt interno ao cluster no MVP.
 - Bolt nao deve ter IngressRouteTCP, LoadBalancer ou NodePort externo.
 - TLS externo obrigatorio via cert-manager/Traefik e certificados refletidos conforme padrao da plataforma.

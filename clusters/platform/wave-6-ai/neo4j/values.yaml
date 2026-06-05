@@ -25,6 +25,9 @@ neo4j:
     server.memory.pagecache.size: "2G"
     server.metrics.prometheus.enabled: "true"
     server.metrics.prometheus.endpoint: "0.0.0.0:2004"
+    server.http.x_forward.enabled: "true"
+    server.http.x_forward.allow_hosts: "neo4j.platform.the-lab.zone"
+    server.http.x_forward.private_ips_enabled: "true"
     dbms.security.procedures.unrestricted: "apoc.*"
     dbms.security.procedures.allowlist: "apoc.*"
 
