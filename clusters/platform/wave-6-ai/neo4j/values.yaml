@@ -72,8 +72,6 @@ ingress:
   host: neo4j.platform.the-lab.zone
   tlsSecretName: platform-wildcard-tls
   rootRedirectMiddlewareName: neo4j-browser-redirect
-  autheliaMiddlewareName: authelia-forwardauth
-  autheliaMiddlewareNamespace: traefik
   headersMiddlewareName: default-headers
   headersMiddlewareNamespace: traefik
 

@@ -25,8 +25,8 @@ Decisoes principais:
 - Neo4j armazena apenas grafo, metadados e provenance.
 - Backup logico via `neo4j-admin database dump`.
 - Backup armazenado no AiStore/MinIO interno, seguindo o padrao do CronJob de backup do Forgejo.
-- Bolt permanece apenas interno ao cluster.
-- Neo4j Browser exposto via Traefik + Authelia quando viavel na Community Edition.
+- Bolt permanece interno ao cluster para LightRAG e consumidores Kubernetes.
+- Neo4j Browser exposto via Traefik HTTPS sem Authelia; acesso protegido pela autenticacao nativa do Neo4j.
 - Secrets via Infisical + External Secrets Operator.
 - APOC entra no MVP.
 - Graph Data Science fica para fase posterior.
@@ -49,8 +49,8 @@ Decisoes principais:
 - Usar `proxmox-lvm` como StorageClass.
 - Gerenciar credenciais por Infisical e External Secrets Operator.
 - Expor Neo4j Browser em `neo4j.platform.the-lab.zone` via Traefik.
-- Proteger o acesso externo ao Browser com Authelia e autenticacao nativa do Neo4j, caso a exposicao via Community Edition seja viavel.
-- Manter Bolt interno ao cluster no MVP.
+- Proteger o acesso externo ao Browser com autenticacao nativa do Neo4j.
+- Manter Bolt interno ao cluster para LightRAG e consumidores Kubernetes.
 - Implementar observabilidade basica com VictoriaMetrics/Grafana.
 - Definir backup diario via `neo4j-admin database dump`, com RPO de 24 horas e RTO de 4 horas.
 - Suportar evolucao de schema via migracoes Cypher versionadas em Git.
@@ -74,7 +74,6 @@ Decisoes principais:
 - RBAC granular por equipe, dominio ou tenant.
 - OIDC nativo no Neo4j.
 - Graph Data Science como requisito mandatorio.
-- Exposicao externa do protocolo Bolt.
 
 ## 4. Consumidores previstos
 
@@ -196,6 +195,8 @@ Relacionamentos:
 | Plugins fase posterior | Graph Data Science |
 | Papel de Qdrant | Vector database autoritativo |
 | Papel de Neo4j | Grafo, metadados e provenance |
+| Exposicao HTTP | Neo4j Browser via Traefik HTTPS sem Authelia |
+| Exposicao Bolt | Interna ao cluster em `neo4j.neo4j.svc.cluster.local:7687` |
 | Documentos previstos | ate 10.000 |
 | Nos previstos | ate 100.000 |
 | Relacionamentos previstos | ate 1.000.000 |
@@ -268,7 +269,7 @@ Requisitos de configuracao:
 - Graph Data Science desabilitado no MVP.
 - Recursos de CPU/memoria definidos explicitamente.
 - Service HTTP para Browser.
-- Service Bolt apenas interno.
+- Service Bolt apenas interno ao cluster.
 
 ### 8.5 Storage
 
@@ -283,9 +284,9 @@ Requisitos de configuracao:
 
 - HTTP/Browser exposto externamente em `neo4j.platform.the-lab.zone`, se viavel com Neo4j Community Edition.
 - Acesso externo via Traefik.
-- Protecao externa por Authelia.
+- Sem middleware de Authelia no Browser.
 - Bolt interno ao cluster no MVP.
-- Bolt nao deve ter IngressRoute, LoadBalancer ou NodePort externo.
+- Bolt nao deve ter IngressRouteTCP, LoadBalancer ou NodePort externo.
 - TLS externo obrigatorio via cert-manager/Traefik e certificados refletidos conforme padrao da plataforma.
 
 ### 8.7 Secrets
@@ -319,7 +320,8 @@ Permitido:
 MVP:
 
 - Autenticacao nativa do Neo4j.
-- Authelia na borda para o Browser exposto via Traefik, se a exposicao for viavel na Community Edition.
+- Sem Authelia no Neo4j Browser.
+- Bolt interno ao cluster e protegido pela autenticacao nativa do Neo4j.
 
 Futuro:
 
@@ -503,13 +505,13 @@ FOR (d:Document) ON (d.uri);
 - As credenciais sao obtidas via Infisical/ESO.
 - Nenhum segredo sensivel esta em texto puro no Git.
 - Neo4j Browser esta acessivel por `neo4j.platform.the-lab.zone` via Traefik, se suportado pela Community Edition no modo adotado.
-- Acesso externo ao Browser passa por Authelia quando o Browser estiver exposto.
+- Acesso externo ao Browser nao passa por Authelia.
 - Bolt nao fica exposto publicamente no MVP.
 
 ### 14.2 Funcional
 
 - Login no Neo4j Browser funciona com credenciais nativas.
-- Um cliente interno consegue conectar via Bolt.
+- Um cliente interno consegue conectar via Bolt em `neo4j.neo4j.svc.cluster.local:7687`.
 - APOC esta disponivel.
 - Graph Data Science nao esta habilitado no MVP.
 - Constraints e indices iniciais podem ser aplicados por Cypher.
@@ -541,12 +543,12 @@ FOR (d:Document) ON (d.uri);
 | Risco | Impacto | Mitigacao |
 |---|---|---|
 | Neo4j Community single instance indisponivel durante manutencao | LightRAG e agentes perdem a camada de grafo | Backup diario, restore documentado e aceitacao explicita de sem HA no MVP |
-| Browser exposto indevidamente | Acesso nao autorizado | Traefik + Authelia + auth nativa + Bolt interno |
+| Browser exposto indevidamente | Acesso nao autorizado | Autenticacao nativa do Neo4j, senha forte via Infisical e monitoramento de acesso |
 | Crescimento rapido do grafo apos LightRAG entrar | Queries lentas e disco cheio | Indices, alertas de PVC e revisao de capacidade |
 | Backups nao restauraveis | Perda de dados | Teste de restore como criterio de aceite |
 | Chart oficial nao suportar algum template auxiliar necessario | Retrabalho na implementacao | Usar templates locais no umbrella chart para ingress, secrets, backup e observabilidade |
 | APOC impactar compatibilidade ou imagem | Falha de startup | Validar startup com APOC no MVP antes de habilitar consumidores |
-| Exposicao do Browser nao funcionar bem na Community Edition | Browser externo indisponivel | Manter Bolt interno e usar port-forward operacional como fallback documentado |
+| Exposicao do Browser nao funcionar bem na Community Edition | Browser externo indisponivel | Usar protocolo `https://` no Browser para administracao leve |
 
 ## 17. Decisoes registradas
 
@@ -558,8 +560,8 @@ FOR (d:Document) ON (d.uri);
 - Backup: logico via `neo4j-admin database dump`.
 - Destino de backup: AiStore/MinIO interno.
 - Padrao de backup: CronJob similar ao `forgejo-backup`.
-- Bolt: apenas interno.
-- Browser: Traefik + Authelia se viavel na Community Edition.
+- Bolt: interno ao cluster para LightRAG e consumidores Kubernetes.
+- Browser: Traefik sem Authelia, com autenticacao nativa do Neo4j.
 - Secrets: Infisical + External Secrets Operator.
 - APOC: MVP.
 - Graph Data Science: fase posterior.
@@ -569,4 +571,3 @@ FOR (d:Document) ON (d.uri);
 - Qual sera o nome final do Secret consumido por LightRAG?
 - Quais permissoes de rede serao exigidas quando NetworkPolicy for adotada?
 - Qual sera o bucket/prefixo definitivo no AiStore/MinIO para backups do Neo4j?
-- Sera necessario documentar port-forward como fallback oficial caso o Browser via Traefik nao seja viavel?
