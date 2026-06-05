@@ -44,7 +44,7 @@ env:
   INPUT_DIR: /app/data/inputs
   TIKTOKEN_CACHE_DIR: /app/data/tiktoken
   LOG_DIR: /app/data/logs
-  LOG_LEVEL: INFO
+  LOG_LEVEL: WARNING
   WORKSPACE: the_lab_zone
   SUMMARY_LANGUAGE: Portuguese
   LIGHTRAG_KV_STORAGE: RedisKVStorage
@@ -88,6 +88,6 @@ ingress:
 
 monitoring:
   serviceMonitor:
-    enabled: true
+    enabled: false
     interval: 30s
     scrapeTimeout: 10s

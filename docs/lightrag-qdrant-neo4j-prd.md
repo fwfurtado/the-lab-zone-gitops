@@ -359,7 +359,7 @@ WORKING_DIR=/app/data/rag_storage
 INPUT_DIR=/app/data/inputs
 TIKTOKEN_CACHE_DIR=/app/data/tiktoken
 LOG_DIR=/app/data/logs
-LOG_LEVEL=INFO
+LOG_LEVEL=WARNING
 
 WORKSPACE=the_lab_zone
 SUMMARY_LANGUAGE=Portuguese
@@ -458,6 +458,7 @@ Logs devem permitir diagnosticar:
 - Falhas de autenticacao.
 - Falhas de ingestao.
 - Timeouts de LLM/embedding.
+- O MVP deve evitar `INFO` em producao se a versao atual continuar imprimindo URIs com credenciais em logs.
 
 ### 11.3 Dashboards
 
