@@ -84,7 +84,10 @@ INFISICAL_FOLDERS := \
 	/minio-truenas \
 	/openclaw \
 	/rustdesk \
-	/valkey
+	/valkey \
+	/neo4j \
+	/lightrag \
+	/lightllm
 
 infisical-init-folders:
 	@CLIENT_ID=$$(kubectl -n external-secrets get secret infisical-credentials -o jsonpath='{.data.clientId}' | base64 -d); \

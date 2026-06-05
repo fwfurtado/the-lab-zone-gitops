@@ -1,0 +1,4 @@
+app:
+  name: lightrag
+  namespace: lightrag
+  syncWave: "6"

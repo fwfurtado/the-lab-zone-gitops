@@ -1,0 +1,93 @@
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: ghcr.io/hkuds/lightrag
+  tag: v1.5.0rc3
+  imagePullSecrets: []
+
+updateStrategy:
+  type: Recreate
+
+service:
+  type: ClusterIP
+  port: 9621
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+
+persistence:
+  enabled: true
+  storageClassName: proxmox-lvm
+  ragStorage:
+    size: 10Gi
+  inputs:
+    size: 5Gi
+
+envFrom:
+  configmaps: []
+  secrets: []
+
+env:
+  HOST: 0.0.0.0
+  PORT: 9621
+  WEBUI_TITLE: The Lab Zone Knowledge RAG
+  WEBUI_DESCRIPTION: Knowledge RAG for The Lab Zone
+  WORKING_DIR: /app/data/rag_storage
+  INPUT_DIR: /app/data/inputs
+  TIKTOKEN_CACHE_DIR: /app/data/tiktoken
+  LOG_DIR: /app/data/logs
+  LOG_LEVEL: INFO
+  WORKSPACE: the_lab_zone
+  SUMMARY_LANGUAGE: Portuguese
+  LIGHTRAG_KV_STORAGE: RedisKVStorage
+  LIGHTRAG_DOC_STATUS_STORAGE: RedisDocStatusStorage
+  LIGHTRAG_VECTOR_STORAGE: QdrantVectorDBStorage
+  LIGHTRAG_GRAPH_STORAGE: Neo4JStorage
+  QDRANT_URL: http://qdrant.qdrant.svc.cluster.local:6333
+  NEO4J_URI: neo4j://neo4j.neo4j.svc.cluster.local:7687
+  NEO4J_USERNAME: neo4j
+  NEO4J_DATABASE: neo4j
+  RERANK_BINDING: "null"
+  ENTITY_EXTRACTION_USE_JSON: "true"
+  MAX_PARALLEL_INSERT: "2"
+  MAX_ASYNC_LLM: "4"
+  EMBEDDING_FUNC_MAX_ASYNC: "8"
+  EMBEDDING_BATCH_NUM: "16"
+  LLM_BINDING: ollama
+  LLM_MODEL: ""
+  LLM_BINDING_HOST: ""
+  EMBEDDING_BINDING: ollama
+  EMBEDDING_MODEL: ""
+  EMBEDDING_DIM: ""
+  EMBEDDING_TOKEN_LIMIT: ""
+
+secret:
+  name: lightrag-env
+  remoteRefs:
+    apiKey: /lightrag/api-key
+    llmApiKey: /lightrag/llm-api-key
+    embeddingApiKey: /lightrag/embedding-api-key
+    neo4jPassword: /neo4j/password
+    redisPassword: /valkey/password
+
+ingress:
+  host: lightrag.platform.the-lab.zone
+  tlsSecretName: platform-wildcard-tls
+  headersMiddlewareName: default-headers
+  headersMiddlewareNamespace: traefik
+  authMiddlewareName: authelia-forwardauth
+  authMiddlewareNamespace: traefik
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s

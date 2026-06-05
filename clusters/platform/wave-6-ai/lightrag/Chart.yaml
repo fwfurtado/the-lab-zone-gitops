@@ -1,0 +1,10 @@
+apiVersion: v2
+name: lightrag
+description: LightRAG API/UI connected to Qdrant, Neo4j and Valkey
+type: application
+version: 0.1.0
+appVersion: "v1.5.0rc3"
+maintainers:
+  - name: LightRAG Team
+  - name: earayu
+    email: earayu@gmail.com

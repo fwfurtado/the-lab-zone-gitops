@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lightrag.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "lightrag.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "lightrag.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "lightrag.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: {{ .Values.env.PORT }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: rag-storage
+              mountPath: /app/data/rag_storage
+            - name: inputs
+              mountPath: /app/data/inputs
+            - name: tiktoken-cache
+              mountPath: /app/data/tiktoken
+            - name: logs
+              mountPath: /app/data/logs
+            - name: env-file
+              mountPath: /app/.env
+              subPath: .env
+          {{- $envFrom := default (dict) .Values.envFrom }}
+          {{- $envFromEntries := list }}
+          {{- range (default (list) (index $envFrom "secrets")) }}
+          {{- $envFromEntries = append $envFromEntries (dict "secretRef" (dict "name" .name)) }}
+          {{- end }}
+          {{- range (default (list) (index $envFrom "configmaps")) }}
+          {{- $envFromEntries = append $envFromEntries (dict "configMapRef" (dict "name" .name)) }}
+          {{- end }}
+          {{- if gt (len $envFromEntries) 0 }}
+          envFrom:
+{{- toYaml $envFromEntries | nindent 12 }}
+          {{- end }}
+      {{- with .Values.image.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: env-file
+          secret:
+            secretName: {{ .Values.secret.name }}
+        {{- if .Values.persistence.enabled }}
+        - name: rag-storage
+          persistentVolumeClaim:
+            claimName: {{ include "lightrag.fullname" . }}-rag-storage
+        - name: inputs
+          persistentVolumeClaim:
+            claimName: {{ include "lightrag.fullname" . }}-inputs
+        {{- else }}
+        - name: rag-storage
+          emptyDir: {}
+        - name: inputs
+          emptyDir: {}
+        {{- end }}
+        - name: tiktoken-cache
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}
