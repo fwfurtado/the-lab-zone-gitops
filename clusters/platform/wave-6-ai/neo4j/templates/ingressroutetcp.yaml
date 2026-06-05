@@ -8,7 +8,9 @@ spec:
   entryPoints:
     - bolt
   routes:
-    - match: HostSNI(`*`)
+    - match: HostSNI(`{{ .Values.ingress.host }}`)
       services:
         - name: neo4j
           port: 7687
+  tls:
+    secretName: "{{ .Values.ingress.tlsSecretName }}"
