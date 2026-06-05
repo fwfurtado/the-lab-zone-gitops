@@ -63,6 +63,12 @@ traefik:
       protocol: TCP
       expose:
         default: true
+    bolt:
+      port: 7687
+      exposedPort: 7687
+      protocol: TCP
+      expose:
+        default: true
 
   providers:
     kubernetesCRD:

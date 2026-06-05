@@ -25,8 +25,8 @@ Decisoes principais:
 - Neo4j armazena apenas grafo, metadados e provenance.
 - Backup logico via `neo4j-admin database dump`.
 - Backup armazenado no AiStore/MinIO interno, seguindo o padrao do CronJob de backup do Forgejo.
-- Bolt permanece interno ao cluster para LightRAG e consumidores Kubernetes.
-- Neo4j Browser exposto via Traefik HTTPS sem Authelia; acesso protegido pela autenticacao nativa do Neo4j.
+- Bolt permanece interno ao cluster para LightRAG e consumidores Kubernetes, e tambem e exposto externamente via Traefik TCP para uso administrativo do Neo4j Browser.
+- Neo4j Browser exposto via Traefik HTTPS sem Authelia; Browser e Bolt externo sao protegidos pela autenticacao nativa do Neo4j.
 - Secrets via Infisical + External Secrets Operator.
 - APOC entra no MVP.
 - Graph Data Science fica para fase posterior.
@@ -51,6 +51,7 @@ Decisoes principais:
 - Expor Neo4j Browser em `neo4j.platform.the-lab.zone` via Traefik.
 - Proteger o acesso externo ao Browser com autenticacao nativa do Neo4j.
 - Manter Bolt interno ao cluster para LightRAG e consumidores Kubernetes.
+- Expor Bolt externamente via Traefik TCP em `neo4j.platform.the-lab.zone:7687` para permitir uso administrativo do Neo4j Browser.
 - Implementar observabilidade basica com VictoriaMetrics/Grafana.
 - Definir backup diario via `neo4j-admin database dump`, com RPO de 24 horas e RTO de 4 horas.
 - Suportar evolucao de schema via migracoes Cypher versionadas em Git.
@@ -196,7 +197,7 @@ Relacionamentos:
 | Papel de Qdrant | Vector database autoritativo |
 | Papel de Neo4j | Grafo, metadados e provenance |
 | Exposicao HTTP | Neo4j Browser via Traefik HTTPS sem Authelia |
-| Exposicao Bolt | Interna ao cluster em `neo4j.neo4j.svc.cluster.local:7687` |
+| Exposicao Bolt | Interna em `neo4j.neo4j.svc.cluster.local:7687` e externa via Traefik TCP em `neo4j.platform.the-lab.zone:7687` |
 | Documentos previstos | ate 10.000 |
 | Nos previstos | ate 100.000 |
 | Relacionamentos previstos | ate 1.000.000 |
@@ -269,7 +270,7 @@ Requisitos de configuracao:
 - Graph Data Science desabilitado no MVP.
 - Recursos de CPU/memoria definidos explicitamente.
 - Service HTTP para Browser.
-- Service Bolt apenas interno ao cluster.
+- Service Bolt interno ao cluster e IngressRouteTCP para exposicao externa via Traefik.
 
 ### 8.5 Storage
 
@@ -287,8 +288,10 @@ Requisitos de configuracao:
 - Sem middleware de Authelia no Browser.
 - Sem redirect automatico de `/` para `/browser/`, para preservar o discovery JSON usado pelo protocolo `https://` do Neo4j Browser.
 - Neo4j deve aceitar headers `X-Forwarded-*` do Traefik para `neo4j.platform.the-lab.zone`.
-- Bolt interno ao cluster no MVP.
-- Bolt nao deve ter IngressRouteTCP, LoadBalancer ou NodePort externo.
+- Bolt interno ao cluster para consumidores como LightRAG.
+- Bolt externo via Traefik TCP em `neo4j.platform.the-lab.zone:7687` para permitir uso administrativo do Neo4j Browser.
+- Bolt externo nao deve usar Authelia; o controle de acesso fica na autenticacao nativa do Neo4j.
+- Bolt nao deve ter LoadBalancer ou NodePort dedicado fora do Traefik.
 - TLS externo obrigatorio via cert-manager/Traefik e certificados refletidos conforme padrao da plataforma.
 
 ### 8.7 Secrets
@@ -323,7 +326,8 @@ MVP:
 
 - Autenticacao nativa do Neo4j.
 - Sem Authelia no Neo4j Browser.
-- Bolt interno ao cluster e protegido pela autenticacao nativa do Neo4j.
+- Bolt interno ao cluster para consumidores Kubernetes.
+- Bolt externo via Traefik TCP protegido pela autenticacao nativa do Neo4j.
 
 Futuro:
 
@@ -508,12 +512,13 @@ FOR (d:Document) ON (d.uri);
 - Nenhum segredo sensivel esta em texto puro no Git.
 - Neo4j Browser esta acessivel por `neo4j.platform.the-lab.zone` via Traefik, se suportado pela Community Edition no modo adotado.
 - Acesso externo ao Browser nao passa por Authelia.
-- Bolt nao fica exposto publicamente no MVP.
+- Bolt fica exposto via Traefik TCP em `neo4j.platform.the-lab.zone:7687`, sem Authelia e sem LoadBalancer/NodePort dedicado.
 
 ### 14.2 Funcional
 
 - Login no Neo4j Browser funciona com credenciais nativas.
 - Um cliente interno consegue conectar via Bolt em `neo4j.neo4j.svc.cluster.local:7687`.
+- O Neo4j Browser consegue executar queries usando Bolt externo em `neo4j.platform.the-lab.zone:7687`.
 - APOC esta disponivel.
 - Graph Data Science nao esta habilitado no MVP.
 - Constraints e indices iniciais podem ser aplicados por Cypher.
@@ -562,7 +567,7 @@ FOR (d:Document) ON (d.uri);
 - Backup: logico via `neo4j-admin database dump`.
 - Destino de backup: AiStore/MinIO interno.
 - Padrao de backup: CronJob similar ao `forgejo-backup`.
-- Bolt: interno ao cluster para LightRAG e consumidores Kubernetes.
+- Bolt: interno ao cluster para LightRAG e consumidores Kubernetes; externo via Traefik TCP para administracao pelo Neo4j Browser.
 - Browser: Traefik sem Authelia, com autenticacao nativa do Neo4j.
 - Secrets: Infisical + External Secrets Operator.
 - APOC: MVP.
