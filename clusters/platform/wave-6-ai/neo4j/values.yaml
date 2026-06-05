@@ -71,7 +71,6 @@ neo4j:
 ingress:
   host: neo4j.platform.the-lab.zone
   tlsSecretName: platform-wildcard-tls
-  rootRedirectMiddlewareName: neo4j-browser-redirect
   headersMiddlewareName: default-headers
   headersMiddlewareNamespace: traefik
 

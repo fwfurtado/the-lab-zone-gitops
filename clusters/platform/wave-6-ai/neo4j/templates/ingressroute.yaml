@@ -13,7 +13,6 @@ spec:
       middlewares:
         - name: "{{ .Values.ingress.headersMiddlewareName }}"
           namespace: "{{ .Values.ingress.headersMiddlewareNamespace }}"
-        - name: "{{ .Values.ingress.rootRedirectMiddlewareName }}"
       services:
         - name: neo4j
           port: 7474
