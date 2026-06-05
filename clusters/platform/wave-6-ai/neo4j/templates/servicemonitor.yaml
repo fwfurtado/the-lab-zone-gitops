@@ -1,0 +1,22 @@
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: neo4j
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app.kubernetes.io/name: neo4j
+spec:
+  selector:
+    matchLabels:
+      helm.neo4j.com/service: admin
+      helm.neo4j.com/instance: neo4j
+  namespaceSelector:
+    matchNames:
+      - "{{ .Release.Namespace }}"
+  endpoints:
+    - port: tcp-prometheus
+      interval: "{{ .Values.monitoring.serviceMonitor.interval }}"
+      scrapeTimeout: "{{ .Values.monitoring.serviceMonitor.scrapeTimeout }}"
+{{- end }}

@@ -1,0 +1,9 @@
+{{/*
+M3 placeholder.
+
+The PRD requires logical backups through `neo4j-admin database dump` and upload
+to the internal AiStore/MinIO. This scaffold intentionally does not render a
+CronJob yet because the final implementation must account for Neo4j dump
+semantics, PVC access, and whether the database must be put into maintenance
+mode before dumping.
+*/}}

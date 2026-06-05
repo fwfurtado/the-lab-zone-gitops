@@ -41,10 +41,14 @@ The homelab runs a Talos Kubernetes cluster on Proxmox. All platform services �
 ┌──────────────────────────────────────────────────────────────┐
 │              Kubernetes Cluster (Talos Linux)                 │
 │                                                              │
-│  wave 0: cilium, prometheus-operator-crds                    │
-│  wave 1: metallb, sealed-secrets                             │
-│  wave 2: proxmox-csi, external-secrets, monitoring, traefik  │
-│  wave 3: argocd                                              │
+│  wave 0: cilium, metallb                                     │
+│  wave 1: cert-manager, prometheus-crds, reflector, secrets   │
+│  wave 2: core infra, storage, ESO, monitoring, workflows     │
+│  wave 3: infisical                                           │
+│  wave 4: traefik, external-dns                               │
+│  wave 5: platform services                                   │
+│  wave 6: AI/RAG infrastructure                               │
+│  wave 7: argocd                                              │
 └──────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────┐
@@ -65,16 +69,15 @@ The homelab runs a Talos Kubernetes cluster on Proxmox. All platform services �
 │   ├── repo-secret.tpl.yaml # ArgoCD repo secret (1Password-injected template)
 │   └── root.yaml            # Root Application pointing to applicationsets/
 ├── clusters/                 # Per-cluster application definitions
-│   └── platforms/            # "platforms" cluster
-│       ├── argocd/
-│       ├── cilium/
-│       ├── proxmox-csi/
-│       ├── external-secrets/
-│       ├── metallb/
-│       ├── monitoring/
-│       ├── prometheus-operator-crds/
-│       ├── sealed-secrets/
-│       └── traefik/
+│   └── platform/             # "platform" cluster
+│       ├── wave-0-cni/
+│       ├── wave-1-operators/
+│       ├── wave-2-infra/
+│       ├── wave-3-secrets/
+│       ├── wave-4-edge/
+│       ├── wave-5-platform/
+│       ├── wave-6-ai/
+│       └── wave-7-gitops/
 ├── makefiles/                # Modular Make targets
 │   ├── argo.mk               # ArgoCD install & port-forward
 │   ├── bootstrap.mk          # Bootstrap secrets & root app
@@ -105,10 +108,14 @@ Applications are deployed in a specific order using ArgoCD sync waves to respect
 
 | Wave | Applications | Purpose |
 |---|---|---|
-| **0** | Cilium, Prometheus Operator CRDs | Core networking & CRD foundations |
-| **1** | MetalLB, Sealed Secrets | LoadBalancer IPs & secret encryption |
-| **2** | Proxmox CSI, External Secrets, Infisical, Monitoring | Storage, secrets sync, secret management, observability |
-| **3** | ArgoCD | GitOps platform (needs Traefik ingress, External Secrets for repo creds) |
+| **0** | Cilium, MetalLB | Core networking and LoadBalancer IPs |
+| **1** | cert-manager, prometheus-operator-crds, reflector, sealed-secrets, infisical-secrets-operator | Operators and CRD foundations |
+| **2** | CoreDNS, Proxmox CSI, External Secrets, external-postgres, monitoring, argo-workflows | Core infrastructure, storage, secrets sync and observability |
+| **3** | Infisical | Secret management backend |
+| **4** | Traefik, external-dns | Edge routing and DNS |
+| **5** | Authelia, Forgejo, Forgejo Runner, Grafana, Valkey, Coder, Zot, Velero, OpenClaw, RustDesk | General platform services |
+| **6** | Qdrant, Neo4j | AI/RAG infrastructure |
+| **7** | ArgoCD | GitOps platform |
 
 ## Bootstrap
 
@@ -165,7 +172,7 @@ For each match, an ArgoCD Application is created with:
 
 ### Adding a New Application
 
-1. Create a new directory under `clusters/platforms/<app-name>/`
+1. Create a new directory under `clusters/platform/<wave-name>/<app-name>/`
 2. Add the required files:
    - `app.yaml` — metadata (name, namespace, syncWave, releaseName)
    - `Chart.yaml` — Helm chart with dependencies
@@ -186,7 +193,7 @@ app:
 
 ## Per-App Convention
 
-Each application under `clusters/platforms/` follows a consistent structure:
+Each application under `clusters/platform/<wave-name>/` follows a consistent structure:
 
 ```
 <app-name>/

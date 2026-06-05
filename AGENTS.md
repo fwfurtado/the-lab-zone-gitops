@@ -25,7 +25,8 @@ clusters/platform/
   wave-3-secrets/   — Infisical
   wave-4-edge/      — Traefik, external-dns
   wave-5-platform/  — Authelia, Forgejo, Grafana, Valkey, Coder, Zot, Velero, OpenClaw
-  wave-6-gitops/    — ArgoCD
+  wave-6-ai/        — Qdrant, Neo4j e componentes de infraestrutura AI/RAG
+  wave-7-gitops/    — ArgoCD
 applicationsets/    — ApplicationSet (matrix generator)
 bootstrap/          — bootstrap inicial (root.yaml, repo-secret, infisical-secrets)
 makefiles/          — targets modulares

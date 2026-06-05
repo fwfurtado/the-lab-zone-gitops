@@ -1,0 +1,4 @@
+app:
+  name: neo4j
+  namespace: neo4j
+  syncWave: "6"

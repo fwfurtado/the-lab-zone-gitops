@@ -1,0 +1,95 @@
+neo4j:
+  disableLookups: true
+
+  neo4j:
+    name: neo4j
+    edition: community
+    acceptLicenseAgreement: "no"
+    passwordFromSecret: neo4j-credentials
+    resources:
+      requests:
+        cpu: "1000m"
+        memory: "4Gi"
+      limits:
+        cpu: "2000m"
+        memory: "6Gi"
+
+  env:
+    NEO4J_PLUGINS: '["apoc"]'
+
+  config:
+    server.config.strict_validation.enabled: "false"
+    server.default_listen_address: "0.0.0.0"
+    server.memory.heap.initial_size: "2G"
+    server.memory.heap.max_size: "2G"
+    server.memory.pagecache.size: "2G"
+    server.metrics.prometheus.enabled: "true"
+    server.metrics.prometheus.endpoint: "0.0.0.0:2004"
+    dbms.security.procedures.unrestricted: "apoc.*"
+    dbms.security.procedures.allowlist: "apoc.*"
+
+  volumes:
+    data:
+      mode: dynamic
+      dynamic:
+        storageClassName: proxmox-lvm
+        accessModes:
+          - ReadWriteOnce
+        requests:
+          storage: 50Gi
+
+  services:
+    neo4j:
+      enabled: false
+    default:
+      annotations: {}
+    admin:
+      enabled: true
+      spec:
+        type: ClusterIP
+
+  readinessProbe:
+    tcpSocket:
+      port: 7687
+    failureThreshold: 20
+    timeoutSeconds: 10
+    periodSeconds: 5
+
+  livenessProbe:
+    tcpSocket:
+      port: 7687
+    failureThreshold: 40
+    timeoutSeconds: 10
+    periodSeconds: 5
+
+  startupProbe:
+    tcpSocket:
+      port: 7687
+    failureThreshold: 120
+    periodSeconds: 5
+
+ingress:
+  host: neo4j.platform.the-lab.zone
+  tlsSecretName: platform-wildcard-tls
+  autheliaMiddlewareName: authelia-forwardauth
+  autheliaMiddlewareNamespace: traefik
+  headersMiddlewareName: default-headers
+  headersMiddlewareNamespace: traefik
+
+backup:
+  enabled: false
+  schedule: "0 3 * * *"
+  retention: 720h
+  activeDeadlineSeconds: 1800
+  bucket: neo4j-backups
+  endpoint: http://10.40.1.20:9000
+  database: neo4j
+  image: neo4j:2026.05.0
+  mcImage: minio/mc:latest
+  stagingSizeLimit: 20Gi
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s

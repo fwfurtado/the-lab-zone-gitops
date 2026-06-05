@@ -1,4 +1,4 @@
 app:
   name: qdrant
   namespace: qdrant
-  syncWave: "5"
+  syncWave: "6"
