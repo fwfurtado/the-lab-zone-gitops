@@ -1,0 +1,11 @@
+apiVersion: v2
+name: litellm
+description: LiteLLM AI gateway for The Lab Zone
+type: application
+version: 0.1.0
+appVersion: "1.88.0"
+dependencies:
+  - name: litellm-helm
+    alias: litellm
+    version: "1.88.0"
+    repository: oci://ghcr.io/berriai

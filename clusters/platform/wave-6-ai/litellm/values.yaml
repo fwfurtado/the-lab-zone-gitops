@@ -1,0 +1,230 @@
+litellm:
+  replicaCount: 2
+
+  image:
+    repository: ghcr.io/berriai/litellm-database
+    tag: 1.88.0
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets: []
+
+  nameOverride: litellm
+  fullnameOverride: litellm
+
+  serviceAccount:
+    create: false
+
+  service:
+    type: ClusterIP
+    port: 4000
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  deploymentMinReadySeconds: 10
+  terminationGracePeriodSeconds: 90
+
+  livenessProbe:
+    path: /health/liveliness
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+
+  readinessProbe:
+    path: /health/readiness
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 3
+
+  startupProbe:
+    path: /health/readiness
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 30
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  autoscaling:
+    enabled: false
+
+  keda:
+    enabled: false
+
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+
+  environmentSecrets:
+    - litellm-env
+
+  masterkeySecretName: litellm-env
+  masterkeySecretKey: masterkey
+
+  db:
+    useExisting: true
+    deployStandalone: false
+    endpoint: postgres.database.svc.cluster.local:5432
+    database: litellm
+    url: postgresql://$(DATABASE_USERNAME):$(DATABASE_PASSWORD)@$(DATABASE_HOST)/$(DATABASE_NAME)
+    secret:
+      name: litellm-env
+      usernameKey: database-username
+      passwordKey: database-password
+
+  redis:
+    enabled: false
+
+  migrationJob:
+    enabled: true
+    retries: 3
+    backoffLimit: 4
+    ttlSecondsAfterFinished: 120
+    hooks:
+      argocd:
+        enabled: true
+      helm:
+        enabled: false
+
+  logLevel: INFO
+
+  envVars:
+    STORE_MODEL_IN_DB: "True"
+    LITELLM_MODE: PRODUCTION
+    UI_USERNAME: admin
+    NO_DOCS: "True"
+    NO_REDOC: "True"
+
+  ingress:
+    enabled: false
+
+  serviceMonitor:
+    enabled: false
+
+  proxyConfigMap:
+    create: true
+
+  proxy_config:
+    model_list:
+      - model_name: lab-chat-default
+        litellm_params:
+          model: ollama/qwen3:32b
+          api_base: os.environ/OLLAMA_API_BASE
+          rpm: 30
+          tpm: 60000
+
+      - model_name: lab-chat-fast
+        litellm_params:
+          model: ollama/qwen3:30b-a3b
+          api_base: os.environ/OLLAMA_API_BASE
+          rpm: 45
+          tpm: 90000
+
+      - model_name: lab-chat-reasoning
+        litellm_params:
+          model: ollama/deepseek-r1:32b
+          api_base: os.environ/OLLAMA_API_BASE
+          rpm: 20
+          tpm: 50000
+
+      - model_name: lab-vision-default
+        litellm_params:
+          model: ollama/gemma3:27b
+          api_base: os.environ/OLLAMA_API_BASE
+          rpm: 15
+          tpm: 40000
+
+      - model_name: lab-embedding-default
+        litellm_params:
+          model: ollama/bge-m3
+          api_base: os.environ/OLLAMA_API_BASE
+          rpm: 120
+          tpm: 250000
+
+      - model_name: lab-chat-cloud
+        litellm_params:
+          model: openrouter/openai/gpt-4o-mini
+          api_key: os.environ/OPENROUTER_API_KEY
+          rpm: 30
+          tpm: 60000
+
+      - model_name: lab-chat-fallback
+        litellm_params:
+          model: ollama/qwen3:32b
+          api_base: os.environ/OLLAMA_API_BASE
+          rpm: 30
+          tpm: 60000
+
+      - model_name: lab-embedding-cloud
+        litellm_params:
+          model: openrouter/openai/text-embedding-3-large
+          api_key: os.environ/OPENROUTER_API_KEY
+          rpm: 60
+          tpm: 200000
+
+      - model_name: lab-embedding-fallback
+        litellm_params:
+          model: ollama/bge-m3
+          api_base: os.environ/OLLAMA_API_BASE
+          rpm: 120
+          tpm: 250000
+
+    general_settings:
+      master_key: os.environ/PROXY_MASTER_KEY
+      database_url: os.environ/DATABASE_URL
+      store_model_in_db: true
+
+    litellm_settings:
+      request_timeout: 60
+      num_retries: 2
+      drop_params: true
+      success_callback: []
+      failure_callback: []
+      fallbacks:
+        - lab-chat-fallback:
+            - lab-chat-cloud
+        - lab-embedding-fallback:
+            - lab-embedding-cloud
+
+    router_settings:
+      routing_strategy: simple-shuffle
+      redis_url: os.environ/REDIS_URL
+      redis_host: os.environ/REDIS_HOST
+      redis_port: os.environ/REDIS_PORT
+      redis_password: os.environ/REDIS_PASSWORD
+
+secret:
+  name: litellm-env
+  remoteRefs:
+    masterKey: /litellm/master-key
+    saltKey: /litellm/salt-key
+    databasePassword: /database/litellm/password
+    openrouterApiKey: /litellm/openrouter-api-key
+    ollamaApiBase: /litellm/ollama-api-base
+    valkeyPassword: /valkey/password
+
+ingress:
+  host: litellm.platform.the-lab.zone
+  tlsSecretName: platform-wildcard-tls
+  headersMiddlewareName: default-headers
+  headersMiddlewareNamespace: traefik
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s

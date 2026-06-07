@@ -1,0 +1,20 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: litellm
+  namespace: "{{ .Release.Namespace }}"
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{ .Values.ingress.host }}`)
+      kind: Rule
+      middlewares:
+        - name: {{ .Values.ingress.headersMiddlewareName }}
+          namespace: {{ .Values.ingress.headersMiddlewareNamespace }}
+      services:
+        - name: litellm
+          port: 4000
+  tls:
+    secretName: {{ .Values.ingress.tlsSecretName }}

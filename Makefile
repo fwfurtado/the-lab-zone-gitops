@@ -78,6 +78,7 @@ INFISICAL_FOLDERS := \
 	/database/coder \
 	/database/forgejo \
 	/database/infisical \
+	/database/litellm \
 	/forgejo \
 	/grafana \
 	/minio \
@@ -87,7 +88,7 @@ INFISICAL_FOLDERS := \
 	/valkey \
 	/neo4j \
 	/lightrag \
-	/lightllm
+	/litellm
 
 infisical-init-folders:
 	@CLIENT_ID=$$(kubectl -n external-secrets get secret infisical-credentials -o jsonpath='{.data.clientId}' | base64 -d); \

@@ -1,0 +1,4 @@
+app:
+  name: litellm
+  namespace: litellm
+  syncWave: "6"
