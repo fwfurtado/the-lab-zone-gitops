@@ -34,6 +34,10 @@ spec:
   transport: {{ $server.transport }}
   proxyPort: {{ default $defaults.proxyPort $server.proxyPort }}
   mcpPort: {{ $server.mcpPort }}
+  {{- if $server.args }}
+  args:
+    {{- toYaml $server.args | nindent 4 }}
+  {{- end }}
   groupRef:
     name: {{ $groupName }}
   {{- if $server.serviceAccountName }}
@@ -54,7 +58,10 @@ spec:
       value: {{ $value | quote }}
     {{- end }}
   {{- end }}
-  {{- if $server.secretName }}
+  {{- if $server.secrets }}
+  secrets:
+    {{- toYaml $server.secrets | nindent 4 }}
+  {{- else if $server.secretName }}
   secrets:
     - name: {{ $server.secretName }}
       key: GRAFANA_SERVICE_ACCOUNT_TOKEN

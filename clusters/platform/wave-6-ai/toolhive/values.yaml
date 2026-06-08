@@ -94,7 +94,7 @@ registryServer:
     registries:
       - name: default
         sources:
-          - toolhive-upstream
+          # - toolhive-upstream
           - lab-kubernetes
     auth:
       mode: anonymous
@@ -132,6 +132,11 @@ secrets:
     name: toolhive-grafana
     remoteRefs:
       serviceAccountToken: /toolhive/mcp/grafana/token
+  lightrag:
+    enabled: true
+    name: toolhive-lightrag
+    remoteRefs:
+      apiKey: /lightrag/api-key
 
 mcp:
   group:
@@ -213,3 +218,42 @@ mcp:
         GRAFANA_URL: http://grafana.grafana.svc.cluster.local
         GRAFANA_ORG_ID: "1"
       secretName: toolhive-grafana
+
+    lightrag:
+      enabled: true
+      name: lightrag
+      image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+      transport: streamable-http
+      proxyPort: 8080
+      mcpPort: 8000
+      args:
+        - tool
+        - run
+        - --from
+        - lightrag-mcp==0.1.1
+        - lightrag_mcp
+        - --mcp-transport
+        - streamable-http
+        - --mcp-host
+        - 0.0.0.0
+        - --mcp-port
+        - "8000"
+        - --mcp-streamable-http-path
+        - /mcp
+        - --host
+        - lightrag.lightrag.svc.cluster.local
+        - --port
+        - "9621"
+        - --api-key
+        - $(LIGHTRAG_API_KEY)
+      secrets:
+        - name: toolhive-lightrag
+          key: LIGHTRAG_API_KEY
+          targetEnvName: LIGHTRAG_API_KEY
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
