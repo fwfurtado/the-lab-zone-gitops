@@ -1,0 +1,85 @@
+obot:
+  replicaCount: 1
+
+  dev:
+    useEmbeddedDb: false
+
+  image:
+    repository: ghcr.io/obot-platform/obot
+    tag: v0.22.1
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets: []
+
+  nameOverride: obot
+  fullnameOverride: obot
+
+  updateStrategy: RollingUpdate
+
+  serviceAccount:
+    create: true
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: false
+
+  config:
+    existingSecret: obot-env
+
+  persistence:
+    enabled: true
+    storageClass: proxmox-lvm
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  mcpNamespace:
+    name: obot-mcp
+    annotations:
+      argocd.argoproj.io/sync-wave: "-1"
+    networkPolicy:
+      enabled: false
+    podSecurity:
+      enabled: true
+      enforce: restricted
+      enforceVersion: latest
+      audit: restricted
+      auditVersion: latest
+      warn: restricted
+      warnVersion: latest
+
+  mcpServerDefaults:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    storageClassName: proxmox-lvm
+    nanobotWorkspaceSize: 1Gi
+
+secret:
+  name: obot-env
+  remoteRefs:
+    databasePassword: /database/obot/password
+    encryptionKey: /obot/encryption-key
+    bootstrapToken: /obot/bootstrap-token
+    ownerEmails: /obot/owner-emails
+
+ingress:
+  host: obot.platform.the-lab.zone
+  tlsSecretName: platform-wildcard-tls
+  headersMiddlewareName: default-headers
+  headersMiddlewareNamespace: traefik

@@ -1,0 +1,4 @@
+app:
+  name: obot
+  namespace: obot
+  syncWave: "6"

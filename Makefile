@@ -89,8 +89,8 @@ INFISICAL_FOLDERS := \
 	/neo4j \
 	/lightrag \
 	/litellm \
-	/context-forge \
-	/database/context-forge
+	/obot \
+	/database/obot
 
 infisical-init-folders:
 	@CLIENT_ID=$$(kubectl -n external-secrets get secret infisical-credentials -o jsonpath='{.data.clientId}' | base64 -d); \

@@ -2,8 +2,8 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: context-forge
-  namespace: {{ .Release.Namespace }}
+  name: obot
+  namespace: "{{ .Release.Namespace }}"
 spec:
   entryPoints:
     - websecure
@@ -14,7 +14,7 @@ spec:
         - name: {{ .Values.ingress.headersMiddlewareName }}
           namespace: {{ .Values.ingress.headersMiddlewareNamespace }}
       services:
-        - name: context-forge-mcpgateway
+        - name: obot
           port: 80
   tls:
     secretName: {{ .Values.ingress.tlsSecretName }}

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: obot
+description: Obot AI tool gateway and MCP runtime for The Lab Zone
+type: application
+version: 0.1.0
+appVersion: "v0.22.1"
+dependencies:
+  - name: obot
+    version: "v0.22.1"
+    repository: https://charts.obot.ai
