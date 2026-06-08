@@ -1,0 +1,15 @@
+apiVersion: v2
+name: toolhive
+description: ToolHive MCP platform for The Lab Zone
+type: application
+version: 0.1.0
+appVersion: "0.29.1"
+dependencies:
+  - name: toolhive-operator-crds
+    alias: operatorCrds
+    version: "0.29.1"
+    repository: oci://ghcr.io/stacklok/toolhive
+  - name: toolhive-operator
+    alias: operator
+    version: "0.29.1"
+    repository: oci://ghcr.io/stacklok/toolhive

@@ -1,0 +1,4 @@
+app:
+  name: toolhive
+  namespace: toolhive-system
+  syncWave: "6"

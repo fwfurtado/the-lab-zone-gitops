@@ -1,0 +1,44 @@
+{{- if .Values.monitoring.service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.monitoring.service.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: operator
+  ports:
+    - name: metrics
+      port: {{ .Values.monitoring.service.port }}
+      targetPort: metrics
+{{- end }}
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: toolhive-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: operator
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: operator
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: {{ .Values.monitoring.serviceMonitor.interval | quote }}
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout | quote }}
+{{- end }}

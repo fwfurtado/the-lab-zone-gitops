@@ -90,6 +90,9 @@ INFISICAL_FOLDERS := \
 	/lightrag \
 	/litellm \
 	/obot \
+	/toolhive \
+	/toolhive/mcp \
+	/toolhive/mcp/grafana \
 	/database/obot
 
 infisical-init-folders:

@@ -1,0 +1,155 @@
+operatorCrds:
+  crds:
+    install: true
+    keep: true
+
+operator:
+  fullnameOverride: toolhive-operator
+  operator:
+    replicaCount: 1
+    image: ghcr.io/stacklok/toolhive/operator:v0.29.1
+    imagePullPolicy: IfNotPresent
+    toolhiveRunnerImage: ghcr.io/stacklok/toolhive/proxyrunner:v0.29.1
+    vmcpImage: ghcr.io/stacklok/toolhive/vmcp:v0.29.1
+    proxyHost: 0.0.0.0
+    env:
+      - name: TOOLHIVE_SKIP_UPDATE_CHECK
+        value: "true"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    rbac:
+      scope: namespace
+      allowedNamespaces:
+        - toolhive-mcp
+    serviceAccount:
+      create: true
+      automountServiceAccountToken: true
+      name: toolhive-operator
+
+runtimeNamespace:
+  name: toolhive-mcp
+  podSecurity:
+    enforce: restricted
+    audit: restricted
+    warn: restricted
+
+ingress:
+  enabled: true
+  host: toolhive.platform.the-lab.zone
+  tlsSecretName: platform-wildcard-tls
+  headersMiddlewareName: default-headers
+  headersMiddlewareNamespace: traefik
+  authMiddlewareName: authelia-forwardauth
+  authMiddlewareNamespace: traefik
+  serviceName: vmcp-lab-tools
+  servicePort: 8080
+
+monitoring:
+  service:
+    enabled: true
+    name: toolhive-operator-metrics
+    port: 8080
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+
+secrets:
+  grafana:
+    enabled: true
+    name: toolhive-grafana
+    remoteRefs:
+      serviceAccountToken: /toolhive/mcp/grafana/token
+
+mcp:
+  group:
+    name: lab-tools
+    description: The Lab Zone MVP MCP tools exposed through ToolHive.
+
+  telemetry:
+    enabled: true
+    name: lab-tools-telemetry
+    prometheus:
+      enabled: true
+
+  virtual:
+    enabled: true
+    name: lab-tools
+    replicas: 1
+    incomingAuth:
+      type: anonymous
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  defaults:
+    proxyPort: 8080
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+
+  servers:
+    toolhiveDocs:
+      enabled: true
+      name: toolhive-docs
+      image: ghcr.io/stackloklabs/toolhive-doc-mcp:v0.0.13-20260511
+      transport: streamable-http
+      mcpPort: 8080
+      env:
+        REFRESH_ENABLED: "false"
+        OTEL_ENABLED: "false"
+
+    fetch:
+      enabled: true
+      name: fetch
+      image: ghcr.io/stackloklabs/gofetch/server:1.0.3
+      transport: streamable-http
+      mcpPort: 8080
+      permissionProfile:
+        type: builtin
+        name: network
+      # Future allowlist hook:
+      # Replace builtin network with a configmap permission profile that limits
+      # outbound hosts/ports when Fetch/GoFetch should no longer be open.
+      # allowlist:
+      #   domains:
+      #     - docs.stacklok.com
+
+    kubernetes:
+      enabled: true
+      name: kubernetes-readonly
+      image: ghcr.io/stackloklabs/mkp/server:0.4.0
+      transport: streamable-http
+      mcpPort: 8080
+      serviceAccountName: toolhive-kubernetes-readonly
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+    grafana:
+      enabled: true
+      name: grafana-readonly
+      image: docker.io/grafana/mcp-grafana:0.14.0
+      transport: sse
+      mcpPort: 8000
+      env:
+        GRAFANA_URL: http://grafana.grafana.svc.cluster.local
+        GRAFANA_ORG_ID: "1"
+      secretName: toolhive-grafana

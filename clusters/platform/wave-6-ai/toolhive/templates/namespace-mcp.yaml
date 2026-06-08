@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.runtimeNamespace.name }}
+  labels:
+    pod-security.kubernetes.io/enforce: {{ .Values.runtimeNamespace.podSecurity.enforce }}
+    pod-security.kubernetes.io/audit: {{ .Values.runtimeNamespace.podSecurity.audit }}
+    pod-security.kubernetes.io/warn: {{ .Values.runtimeNamespace.podSecurity.warn }}
