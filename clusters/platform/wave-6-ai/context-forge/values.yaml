@@ -1,0 +1,205 @@
+ingress:
+  host: context-forge.platform.the-lab.zone
+  tlsSecretName: platform-wildcard-tls
+  headersMiddlewareName: default-headers
+  headersMiddlewareNamespace: traefik
+
+secret:
+  postgresSecretName: context-forge-postgres-external
+  gatewaySecretName: context-forge-gateway-secret
+  remoteRefs:
+    adminEmail: /context-forge/platform-admin-email
+    adminPassword: /context-forge/platform-admin-password
+    databasePassword: /database/context-forge/password
+    valkeyPassword: /valkey/password
+    jwtSecret: /context-forge/jwt-secret
+    encryptionSecret: /context-forge/encryption-secret
+    metricsToken: /context-forge/metrics-token
+
+mcp-stack:
+  global:
+    fullnameOverride: context-forge
+
+  serviceAccount:
+    create: false
+    automountServiceAccountToken: false
+
+  networkPolicies:
+    enabled: false
+
+  mcpContextForge:
+    replicaCount: 1
+
+    hpa:
+      enabled: false
+
+    image:
+      repository: ghcr.io/ibm/mcp-context-forge@sha256
+      tag: "e2650dd5764a5b7a2f0548fe7569249c574c51778040988e8957aa18fdbd4169"
+      pullPolicy: IfNotPresent
+
+    service:
+      type: ClusterIP
+      port: 80
+
+    containerPort: 4444
+
+    ingress:
+      enabled: false
+
+    metrics:
+      enabled: true
+      port: 8000
+      serviceMonitor:
+        enabled: true
+      metricsToken:
+        secretName: context-forge-gateway-secret
+        key: METRICS_TOKEN
+
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
+    config:
+      HTTP_SERVER: gunicorn
+      GUNICORN_WORKERS: "2"
+      GUNICORN_TIMEOUT: "600"
+      GUNICORN_PRELOAD_APP: "true"
+      GUNICORN_DEV_MODE: "false"
+      DISABLE_ACCESS_LOG: "true"
+
+      APP_NAME: ContextForge
+      HOST: 0.0.0.0
+      PORT: "4444"
+      APP_DOMAIN: https://context-forge.platform.the-lab.zone
+      ENVIRONMENT: production
+      CORS_ENABLED: "true"
+      CORS_ALLOW_CREDENTIALS: "true"
+      ALLOWED_ORIGINS: '["https://context-forge.platform.the-lab.zone"]'
+      SKIP_SSL_VERIFY: "false"
+
+      CACHE_TYPE: redis
+      CACHE_PREFIX: "context-forge:"
+      SESSION_TTL: "3600"
+      MESSAGE_TTL: "600"
+
+      MCPGATEWAY_UI_ENABLED: "true"
+      MCPGATEWAY_UI_AIRGAPPED: "false"
+      MCPGATEWAY_ADMIN_API_ENABLED: "true"
+      MCPGATEWAY_A2A_ENABLED: "true"
+      MCPGATEWAY_DIRECT_PROXY_ENABLED: "false"
+      MCPGATEWAY_CATALOG_ENABLED: "true"
+      MCPGATEWAY_STDIO_TRANSPORT_ENABLED: "false"
+      MCPGATEWAY_WS_RELAY_ENABLED: "false"
+      MCPGATEWAY_REVERSE_PROXY_ENABLED: "false"
+      TRANSPORT_TYPE: all
+      LLMCHAT_ENABLED: "false"
+      TOOLOPS_ENABLED: "false"
+      PLUGINS_ENABLED: "true"
+      PLUGINS_CAN_OVERRIDE_RBAC: "false"
+
+      DEFAULT_ROOTS: "[]"
+      ALLOWED_ROOTS: "[]"
+      ALLOW_PUBLIC_VISIBILITY: "false"
+      INSECURE_ALLOW_QUERYPARAM_AUTH: "false"
+      ENABLE_HEADER_PASSTHROUGH: "false"
+      ENABLE_OVERWRITE_BASE_HEADERS: "false"
+      IDENTITY_PROPAGATION_ENABLED: "false"
+
+      SSRF_PROTECTION_ENABLED: "true"
+      SSRF_ALLOW_LOCALHOST: "false"
+      SSRF_ALLOW_PRIVATE_NETWORKS: "false"
+      # Fill with the validated Kubernetes Service/Pod CIDRs before registering
+      # internal tools that resolve to private addresses.
+      SSRF_ALLOWED_NETWORKS: "[]"
+      SSRF_DNS_FAIL_CLOSED: "true"
+
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+      LOG_TO_FILE: "false"
+      LOG_REQUESTS: "false"
+      STRUCTURED_LOGGING_ENABLED: "true"
+      STRUCTURED_LOGGING_DATABASE_ENABLED: "false"
+
+      AUDIT_TRAIL_ENABLED: "true"
+      PERMISSION_AUDIT_ENABLED: "false"
+      DB_METRICS_RECORDING_ENABLED: "true"
+      METRICS_BUFFER_ENABLED: "true"
+      METRICS_RETENTION_DAYS: "7"
+      ENABLE_METRICS: "true"
+      METRICS_NAMESPACE: context_forge
+
+      OTEL_ENABLE_OBSERVABILITY: "false"
+      OTEL_TRACES_EXPORTER: none
+      OBSERVABILITY_ENABLED: "false"
+
+    secret: null
+
+  migration:
+    enabled: false
+    image:
+      repository: ghcr.io/ibm/mcp-context-forge@sha256
+      tag: "e2650dd5764a5b7a2f0548fe7569249c574c51778040988e8957aa18fdbd4169"
+      pullPolicy: IfNotPresent
+
+  postgres:
+    enabled: false
+    external:
+      enabled: true
+      existingSecret: context-forge-postgres-external
+      hostKey: host
+      portKey: port
+      databaseKey: dbname
+      userKey: user
+      passwordKey: password
+
+  pgbouncer:
+    enabled: false
+
+  redis:
+    enabled: false
+    external:
+      enabled: true
+      existingSecret: context-forge-gateway-secret
+      urlKey: REDIS_URL
+
+  pgadmin:
+    enabled: false
+
+  redisCommander:
+    enabled: false
+
+  minio:
+    enabled: false
+
+  mcpFastTimeServer:
+    enabled: false
+    ingress:
+      enabled: false
+
+  nginxProxy:
+    enabled: false
+
+  route:
+    enabled: false
+
+  monitoring:
+    enabled: false
+
+  testing:
+    enabled: false
+    registration:
+      enabled: false
+    fastTestServer:
+      enabled: false
+    a2aEchoAgent:
+      enabled: false
+    locust:
+      enabled: false
+
+  inspector:
+    enabled: false

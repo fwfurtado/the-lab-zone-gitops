@@ -215,12 +215,16 @@ migration-init-databases:
 	PG_PRIMARY=$$($(KUBECTL) get pods -n cloudnativepg -l cnpg.io/cluster=platform-postgres,role=primary -o name | head -1); \
 	AUTHELIA_PW=$$(op read "op://homelab/Authelia Postgres/password"); \
 	FORGEJO_PW=$$(op read "op://homelab/Forgejo Postgres/password"); \
+	CONTEXT_FORGE_PW=$$(op read "op://homelab/Context Forge Postgres/password"); \
 	echo "--- Creating authelia database and user"; \
 	$(KUBECTL) exec -n cloudnativepg $$PG_PRIMARY -- psql -U postgres -c \
 		"CREATE USER authelia WITH PASSWORD '$$AUTHELIA_PW'; CREATE DATABASE authelia OWNER authelia;" 2>&1 || true; \
 	echo "--- Creating forgejo database and user"; \
 	$(KUBECTL) exec -n cloudnativepg $$PG_PRIMARY -- psql -U postgres -c \
 		"CREATE USER forgejo WITH PASSWORD '$$FORGEJO_PW'; CREATE DATABASE forgejo OWNER forgejo;" 2>&1 || true; \
+	echo "--- Creating context_forge database and user"; \
+	$(KUBECTL) exec -n cloudnativepg $$PG_PRIMARY -- psql -U postgres -c \
+		"CREATE USER context_forge WITH PASSWORD '$$CONTEXT_FORGE_PW'; CREATE DATABASE context_forge OWNER context_forge;" 2>&1 || true; \
 	echo "==> Database initialization complete"
 
 migration-validate-minio-buckets:
