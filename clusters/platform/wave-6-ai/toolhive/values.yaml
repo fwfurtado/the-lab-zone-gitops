@@ -227,6 +227,7 @@ mcp:
       proxyPort: 8080
       mcpPort: 8000
       args:
+        - uv
         - tool
         - run
         - --from
