@@ -35,7 +35,7 @@ mcp-stack:
 
     image:
       repository: ghcr.io/ibm/mcp-context-forge@sha256
-      tag: "e2650dd5764a5b7a2f0548fe7569249c574c51778040988e8957aa18fdbd4169"
+      tag: "1806c964cb75d547bba63ba91aabf0cee534579937c2f1894cffe9b5b6995049"
       pullPolicy: IfNotPresent
 
     service:
@@ -139,11 +139,16 @@ mcp-stack:
 
     secret: null
 
+    extraEnv:
+      - name: DATABASE_URL
+        value: >-
+          postgresql+psycopg2://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
+
   migration:
     enabled: false
     image:
       repository: ghcr.io/ibm/mcp-context-forge@sha256
-      tag: "e2650dd5764a5b7a2f0548fe7569249c574c51778040988e8957aa18fdbd4169"
+      tag: "1806c964cb75d547bba63ba91aabf0cee534579937c2f1894cffe9b5b6995049"
       pullPolicy: IfNotPresent
 
   postgres:
