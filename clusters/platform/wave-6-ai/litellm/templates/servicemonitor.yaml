@@ -16,7 +16,7 @@ spec:
       - "{{ .Release.Namespace }}"
   endpoints:
     - port: http
-      path: /metrics
+      path: /metrics/
       interval: "{{ .Values.monitoring.serviceMonitor.interval }}"
       scrapeTimeout: "{{ .Values.monitoring.serviceMonitor.scrapeTimeout }}"
       authorization:
