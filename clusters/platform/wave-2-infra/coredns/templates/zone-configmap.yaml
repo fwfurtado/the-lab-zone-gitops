@@ -9,7 +9,7 @@ data:
     $TTL 300
 
     @ IN SOA dns.the-lab.zone. admin.the-lab.zone. (
-          2026031301 ; serial
+          2026060802 ; serial
           3600       ; refresh
           900        ; retry
           604800     ; expire
@@ -26,6 +26,8 @@ data:
     ; Virtual Machines
     pg      IN A   10.40.1.75
     ; Cluster service wildcards — Traefik handles routing via IngressRoute
+    mcp         IN A   10.40.2.1
+    group.mcp   IN A   10.40.2.1
     *.platform  IN A   10.40.2.1
     *.infra     IN A   10.40.2.1
     *.mcp       IN A   10.40.2.1
