@@ -34,7 +34,7 @@ operator:
 runtimeNamespace:
   name: toolhive-mcp
   podSecurity:
-    enforce: restricted
+    enforce: baseline
     audit: restricted
     warn: restricted
 
@@ -83,13 +83,6 @@ mcp:
     replicas: 1
     incomingAuth:
       type: anonymous
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 500m
-        memory: 512Mi
 
   defaults:
     proxyPort: 8080

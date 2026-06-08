@@ -227,7 +227,7 @@ Configuracao inicial proposta:
 | Item | Valor proposto |
 |---|---|
 | Namespace | `toolhive-mcp` |
-| Pod Security Admission | `restricted` |
+| Pod Security Admission | `baseline` enforce, `restricted` audit/warn |
 | StorageClass | `proxmox-lvm` quando houver PVC |
 | Resources default | request `50m/128Mi`, limit `500m/512Mi` |
 | NetworkPolicy | fora do bloqueio inicial; adicionar em fase futura |
@@ -380,7 +380,8 @@ Fase futura:
 Requisitos:
 
 - Nao executar workloads privilegiados no MVP.
-- Habilitar Pod Security Admission `restricted` no namespace `toolhive-mcp` quando compativel com os MCP servers escolhidos.
+- Habilitar Pod Security Admission `baseline` no namespace `toolhive-mcp`, mantendo `restricted` em audit/warn.
+- ToolHive v0.29.1 gera o proxy runner sem todos os campos exigidos por PSA `restricted`; migrar `enforce` para `restricted` deve ser reavaliado quando o upstream permitir configurar `seccompProfile` e `capabilities.drop` no proxy runner gerado.
 - Usar imagens fixadas por tag.
 - Preferir imagens upstream oficiais ou mantidas por projetos confiaveis.
 - Definir requests/limits para todos os MCP workloads.

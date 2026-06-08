@@ -81,6 +81,4 @@ spec:
     name: {{ .Values.mcp.telemetry.name }}
   {{- end }}
   replicas: {{ .Values.mcp.virtual.replicas }}
-  resources:
-    {{- toYaml .Values.mcp.virtual.resources | nindent 4 }}
 {{- end }}
