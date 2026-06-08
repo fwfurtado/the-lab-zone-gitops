@@ -27,6 +27,8 @@ argo-cd:
       server.login.prompt.enabled: false
     cm:
       admin.enabled: true
+      exec.enabled: "true"
+      exec.shells: "bash,sh"
       url: https://argocd.platform.the-lab.zone
       # Permite sync de Endpoints customizados (ex: external-services no Traefik).
       # Por padrão ArgoCD 3.x exclui Endpoints; mantemos só EndpointSlice excluído.
