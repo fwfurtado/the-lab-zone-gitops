@@ -1,0 +1,22 @@
+{{- if .Values.registryIngress.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: toolhive-registry
+  namespace: {{ .Release.Namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{ .Values.registryIngress.host }}`)
+      kind: Rule
+      middlewares:
+        - name: {{ .Values.registryIngress.headersMiddlewareName }}
+          namespace: {{ .Values.registryIngress.headersMiddlewareNamespace }}
+      services:
+        - name: {{ .Values.registryIngress.serviceName }}
+          port: {{ .Values.registryIngress.servicePort }}
+  tls:
+    secretName: {{ .Values.registryIngress.tlsSecretName }}
+{{- end }}

@@ -79,6 +79,7 @@ INFISICAL_FOLDERS := \
 	/database/forgejo \
 	/database/infisical \
 	/database/litellm \
+	/database/toolhive-registry \
 	/forgejo \
 	/grafana \
 	/minio \

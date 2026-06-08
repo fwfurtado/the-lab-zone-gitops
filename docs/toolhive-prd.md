@@ -26,6 +26,7 @@ Decisoes iniciais propostas:
 - O umbrella chart deve declarar dependencias para os charts oficiais OCI da Stacklok:
   - `oci://ghcr.io/stacklok/toolhive/toolhive-operator-crds`
   - `oci://ghcr.io/stacklok/toolhive/toolhive-operator`
+  - `oci://ghcr.io/stacklok/toolhive-registry-server`
 - A versao inicial proposta deve seguir a release estavel mais recente validada no momento da implementacao. Em 2026-06-08, a release upstream observada e `v0.29.1`, publicada em 2026-06-04.
 - A versao final do chart e das imagens deve ser fixada no `Chart.yaml` e no `values.yaml`; nao usar `latest`.
 - O namespace do operator deve ser `toolhive-system`, conforme documentacao oficial.
@@ -37,7 +38,10 @@ Decisoes iniciais propostas:
 - Endpoints MCP expostos no MVP nao devem usar `forwardAuth` do Authelia; o acesso deve ficar limitado a rede interna/Tailscale.
 - Autenticacao OIDC nativa no ToolHive deve ser tratada como fase 2, usando Authelia como provider OIDC.
 - Endpoints expostos devem ficar acessiveis somente pela rede interna/Tailscale no MVP.
+- O endpoint MCP principal deve usar o host `mcp.platform.the-lab.zone`.
+- O ToolHive Registry Server deve usar o host `toolhive.platform.the-lab.zone`.
 - MCP servers iniciais devem ser gerenciados no mesmo app/chart `toolhive`, sem app separado no MVP.
+- O Registry Server deve ser implantado no mesmo app/chart `toolhive` para catalogo e descoberta governada.
 - Secrets devem usar External Secrets Operator com `ClusterSecretStore` `infisical`.
 - Observabilidade deve usar VictoriaMetrics/Grafana via metricas Prometheus e/ou OpenTelemetry quando suportado pelo chart/CRDs.
 - Audit logs devem ficar habilitados no MVP se o chart/operador suportar configuracao direta sem backend externo adicional.
@@ -101,8 +105,8 @@ Decisoes iniciais propostas:
 | ToolHive Operator | Reconcilia CRs e cria workloads MCP | `toolhive-system` |
 | MCP workloads | Servidores MCP containerizados e proxies | `toolhive-mcp` |
 | Virtual MCP Server | Endpoint agregado de multiplos MCP backends | `toolhive-mcp` |
-| Registry Server | Catalogo de MCP servers aprovados, se habilitado | `toolhive-mcp` ou `toolhive-system` |
-| Traefik IngressRoute | Exposicao HTTPS de endpoints MCP/portal/gateway | `toolhive-mcp` |
+| Registry Server | Catalogo de MCP servers aprovados e descoberta governada | `toolhive-system` |
+| Traefik IngressRoute | Exposicao HTTPS de endpoints MCP e Registry Server | `toolhive-mcp` e `toolhive-system` |
 | ESO/Infisical | Secrets para auth, tokens e backends | namespaces consumidores |
 | VictoriaMetrics/Grafana | Observabilidade | `monitoring`/stack existente |
 
@@ -136,6 +140,7 @@ toolhive/
   templates/
     external-secret.yaml
     ingressroute.yaml
+    registry-ingressroute.yaml
     namespace-mcp.yaml
     telemetry.yaml
     mcp-groups.yaml
@@ -185,6 +190,10 @@ dependencies:
     alias: operator
     version: "0.29.1"
     repository: oci://ghcr.io/stacklok/toolhive
+  - name: toolhive-registry-server
+    alias: registryServer
+    version: "1.4.6"
+    repository: oci://ghcr.io/stacklok
 ```
 
 Notas:
@@ -236,10 +245,11 @@ Configuracao inicial proposta:
 
 ### 7.3 Endpoints
 
-Host proposto:
+Hosts propostos:
 
 ```text
-toolhive.platform.the-lab.zone
+mcp.platform.the-lab.zone       # Virtual MCP Server para clientes MCP
+toolhive.platform.the-lab.zone  # ToolHive Registry Server
 ```
 
 Requisitos:
@@ -249,8 +259,9 @@ Requisitos:
 - O MVP deve expor ToolHive por Traefik desde o inicio.
 - A exposicao externa deve ser limitada a rede interna/Tailscale, conforme padrao dos apps de plataforma.
 - O endpoint nao deve ficar publico na internet no MVP.
-- ToolHive nao deve expor uma UI no MVP; `https://toolhive.platform.the-lab.zone` e um endpoint MCP, nao uma pagina web.
-- O endpoint principal para clientes MCP deve ser `https://toolhive.platform.the-lab.zone/mcp`.
+- ToolHive nao deve expor uma UI administrativa web no MVP.
+- O endpoint principal para clientes MCP deve ser `https://mcp.platform.the-lab.zone/mcp`.
+- O Registry Server deve ser exposto em `https://toolhive.platform.the-lab.zone`.
 - Endpoints operacionais esperados no vMCP incluem `/health`, `/ping`, `/status`, `/metrics` e `/api/backends/health`.
 
 ## 8. Autenticacao e autorizacao
@@ -287,6 +298,7 @@ Paths propostos:
 | OIDC client secret, se Authelia/OIDC for habilitado | `/toolhive/oidc-client-secret` |
 | Gateway/session secret, se requerido pelo chart | `/toolhive/session-secret` |
 | Webhook auth secret, se usado | `/toolhive/webhook-auth-secret` |
+| Senha PostgreSQL do Registry Server | `/database/toolhive-registry/password` |
 | Token para MCP Git/Forgejo | `/toolhive/mcp/forgejo/token` |
 | Token para MCP Grafana | `/toolhive/mcp/grafana/token` |
 | Token de acesso Kubernetes, se nao usar ServiceAccount dedicado | `/toolhive/mcp/kubernetes/token` |
@@ -329,7 +341,7 @@ Analogia pratica: `MCPServer` e um servidor/ferramenta individual; `VirtualMCPSe
 O MVP deve incluir um Virtual MCP Server unico para consumidores internos:
 
 ```text
-https://toolhive.platform.the-lab.zone/mcp/lab-tools
+https://mcp.platform.the-lab.zone/mcp
 ```
 
 Composicao inicial proposta:
@@ -346,7 +358,38 @@ Requisitos:
 - Nao expor ferramentas mutantes no Virtual MCP Server inicial.
 - Documentar nomes finais de tools aceitas por clientes.
 
-## 12. Observabilidade
+## 12. Registry Server
+
+O ToolHive Registry Server deve ser implantado no mesmo umbrella chart `toolhive` para entregar catalogo governado e descoberta de MCP servers aprovados.
+
+Configuracao MVP:
+
+| Item | Valor |
+|---|---|
+| Chart oficial | `oci://ghcr.io/stacklok/toolhive-registry-server` |
+| Versao inicial | `1.4.6` |
+| Namespace | `toolhive-system` |
+| Host | `toolhive.platform.the-lab.zone` |
+| Auth | `anonymous` no MVP, protegido por rede interna/Tailscale |
+| Banco | PostgreSQL compartilhado `postgres.database.svc.cluster.local:5432` |
+| Database/user | `toolhive_registry` |
+| Secret | `/database/toolhive-registry/password` via ESO/Infisical |
+| RBAC | `namespace`, limitado a `toolhive-mcp` |
+
+Fontes iniciais:
+
+- `toolhive-upstream`: catalogo upstream `https://github.com/stacklok/toolhive-catalog.git`, arquivo `pkg/catalog/toolhive/data/registry-upstream.json`.
+- `lab-kubernetes`: recursos MCP publicados no namespace `toolhive-mcp`, para refletir o estado GitOps local no catalogo.
+
+Requisitos:
+
+- A senha do banco deve ser injetada via `THV_REGISTRY_DATABASE_PASSWORD` a partir de Secret Kubernetes gerenciado por ESO.
+- A configuracao do Registry Server nao deve conter senha em ConfigMap.
+- O `IngressRoute` do Registry Server deve usar TLS `platform-wildcard-tls`.
+- O secret TLS deve ser refletido para `toolhive-system`.
+- Autenticacao OAuth/OIDC no Registry Server deve ser fase futura, depois do MVP anonimo interno/Tailscale.
+
+## 13. Observabilidade
 
 Requisitos MVP:
 
@@ -365,7 +408,7 @@ Sinais minimos:
 - Taxa de chamadas por servidor/tool quando disponivel.
 - Eventos de autorizacao negada.
 
-## 13. Audit logging
+## 14. Audit logging
 
 Requisitos MVP:
 
@@ -387,7 +430,7 @@ Fase futura:
 - Retencao explicita por classe de evento.
 - Alertas para ferramentas mutantes, falhas de autorizacao e acesso fora do padrao.
 
-## 14. Seguranca
+## 15. Seguranca
 
 Requisitos:
 
@@ -410,7 +453,7 @@ Questoes de seguranca a decidir antes da implementacao:
 - Kubernetes RBAC nao oferece uma permissao forte de `list metadata-only` para Secrets em clientes genericos; liberar `list secrets` pode permitir retorno de `data`.
 - Acesso metadata-only a Secrets deve ser reavaliado em fase futura se o MCP server ou uma camada proxy suportar ferramenta especifica que remova `data`/`stringData` antes de expor a resposta.
 
-## 15. Relacao com Obot
+## 16. Relacao com Obot
 
 Obot ja existe como gateway/runtime MCP na wave de AI. ToolHive deve ser tratado inicialmente como plataforma MCP paralela para avaliacao tecnica e hardening.
 
@@ -428,22 +471,25 @@ Requisitos:
   - experiencia de clientes como Claude Code, Codex CLI, OpenCode, VS Code e Zed.
 - Definir uma decisao futura de consolidacao apos validacao operacional.
 
-## 16. Criterios de aceite
+## 17. Criterios de aceite
 
 - ArgoCD cria a aplicacao `toolhive` na wave `6`.
 - Namespace `toolhive-system` existe e contem o ToolHive Operator `Ready`.
+- Registry Server existe no namespace `toolhive-system` e responde no Service `toolhive-registry-server:8080`.
 - CRDs `toolhive.stacklok.dev` existem e sao reconhecidas pela API Kubernetes.
 - Namespace `toolhive-mcp` existe com labels/annotations de Pod Security definidas.
 - Operator esta limitado ao namespace escolhido, se modo `namespace` for adotado.
 - Pelo menos um `MCPServer` ou `MCPRemoteProxy` de baixo risco e reconciliado com sucesso.
 - Pelo menos um endpoint MCP e validado por cliente compativel.
+- `https://mcp.platform.the-lab.zone/mcp` e validado em cliente MCP.
+- `https://toolhive.platform.the-lab.zone` aponta para o Registry Server.
 - Nenhum secret aparece em texto puro no Git.
 - `make template` renderiza o chart sem erro.
 - `make validate` passa ou documenta schemas CRD ausentes que precisem ser adicionados ao fluxo de kubeconform.
 - Logs do operator e dos MCP workloads estao visiveis.
 - Se metrics forem habilitadas, VictoriaMetrics descobre os targets.
 
-## 17. Plano de implementacao
+## 18. Plano de implementacao
 
 ### Fase 0 - Confirmacao de decisoes
 
@@ -458,6 +504,9 @@ Requisitos:
 - Criar `values.yaml` minimo para operator e CRDs.
 - Criar namespace `toolhive-mcp`.
 - Configurar RBAC/allowed namespaces.
+- Configurar `mcp.platform.the-lab.zone` para o Virtual MCP Server.
+- Configurar Registry Server em `toolhive.platform.the-lab.zone`.
+- Configurar ExternalSecret da senha PostgreSQL do Registry Server.
 - Validar renderizacao Helm.
 
 ### Fase 2 - OIDC nativo, seguranca e observabilidade
@@ -480,15 +529,16 @@ Requisitos:
 - Validar consumo por cliente MCP.
 - Registrar runbook minimo de troubleshooting.
 
-### Fase 4 - Virtual MCP e exposicao
+### Fase 4 - Virtual MCP, Registry e exposicao
 
 - Adicionar `MCPGroup`.
 - Adicionar `MCPToolConfig`.
 - Criar `VirtualMCPServer`.
+- Habilitar Registry Server com fontes upstream e Kubernetes.
 - Expor via Traefik se autenticacao estiver definida.
 - Validar cliente externo autorizado.
 
-## 18. Estado das decisoes
+## 19. Estado das decisoes
 
 Todas as decisoes de produto e operacao necessarias para iniciar a implementacao do MVP estao fechadas neste PRD.
 

@@ -13,3 +13,7 @@ dependencies:
     alias: operator
     version: "0.29.1"
     repository: oci://ghcr.io/stacklok/toolhive
+  - name: toolhive-registry-server
+    alias: registryServer
+    version: "1.4.6"
+    repository: oci://ghcr.io/stacklok

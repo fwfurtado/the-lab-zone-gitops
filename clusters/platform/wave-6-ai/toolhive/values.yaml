@@ -40,12 +40,76 @@ runtimeNamespace:
 
 ingress:
   enabled: true
-  host: toolhive.platform.the-lab.zone
+  host: mcp.platform.the-lab.zone
   tlsSecretName: platform-wildcard-tls
   headersMiddlewareName: default-headers
   headersMiddlewareNamespace: traefik
   serviceName: vmcp-lab-tools
   servicePort: 4483
+
+registryIngress:
+  enabled: true
+  host: toolhive.platform.the-lab.zone
+  tlsSecretName: platform-wildcard-tls
+  headersMiddlewareName: default-headers
+  headersMiddlewareNamespace: traefik
+  serviceName: toolhive-registry-server
+  servicePort: 8080
+
+registryServer:
+  fullnameOverride: toolhive-registry-server
+  replicaCount: 1
+  image:
+    registryServerUrl: ghcr.io/stacklok/thv-registry-api:v1.4.6
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  rbac:
+    scope: namespace
+    allowedNamespaces:
+      - toolhive-mcp
+  config:
+    sources:
+      - name: toolhive-upstream
+        git:
+          repository: https://github.com/stacklok/toolhive-catalog.git
+          branch: main
+          path: pkg/catalog/toolhive/data/registry-upstream.json
+        syncPolicy:
+          interval: 30m
+      - name: lab-kubernetes
+        kubernetes:
+          namespaces:
+            - toolhive-mcp
+        syncPolicy:
+          interval: 5m
+    registries:
+      - name: default
+        sources:
+          - toolhive-upstream
+          - lab-kubernetes
+    auth:
+      mode: anonymous
+    database:
+      host: postgres.database.svc.cluster.local
+      port: 5432
+      user: toolhive_registry
+      database: toolhive_registry
+      sslMode: disable
+  extraEnv:
+    - name: THV_REGISTRY_DATABASE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: toolhive-registry
+          key: database-password
 
 monitoring:
   service:
@@ -58,6 +122,11 @@ monitoring:
     scrapeTimeout: 10s
 
 secrets:
+  registry:
+    enabled: true
+    name: toolhive-registry
+    remoteRefs:
+      databasePassword: /database/toolhive-registry/password
   grafana:
     enabled: true
     name: toolhive-grafana
