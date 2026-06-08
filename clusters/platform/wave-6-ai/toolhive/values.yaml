@@ -152,6 +152,11 @@ mcp:
   virtual:
     enabled: true
     name: lab-tools
+    annotations:
+      toolhive.stacklok.dev/registry-export: "true"
+      toolhive.stacklok.dev/registry-title: "The Lab Zone MCP Gateway"
+      toolhive.stacklok.dev/registry-url: "https://mcp.platform.the-lab.zone/mcp"
+      toolhive.stacklok.dev/registry-description: "Virtual MCP Server aggregating the approved The Lab Zone MCP tools."
     replicas: 1
     incomingAuth:
       type: anonymous

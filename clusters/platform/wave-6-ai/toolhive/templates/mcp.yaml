@@ -82,6 +82,10 @@ kind: VirtualMCPServer
 metadata:
   name: {{ .Values.mcp.virtual.name }}
   namespace: {{ .Values.runtimeNamespace.name }}
+  {{- if .Values.mcp.virtual.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.virtual.annotations | nindent 4 }}
+  {{- end }}
 spec:
   groupRef:
     name: {{ .Values.mcp.group.name }}
