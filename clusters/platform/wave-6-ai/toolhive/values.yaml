@@ -44,8 +44,6 @@ ingress:
   tlsSecretName: platform-wildcard-tls
   headersMiddlewareName: default-headers
   headersMiddlewareNamespace: traefik
-  authMiddlewareName: authelia-forwardauth
-  authMiddlewareNamespace: traefik
   serviceName: vmcp-lab-tools
   servicePort: 4483
 

@@ -34,7 +34,8 @@ Decisoes iniciais propostas:
 - O operator deve iniciar em modo `namespace`, limitado ao namespace `toolhive-mcp`.
 - CRDs devem ser gerenciadas pelo chart oficial de CRDs, nao por manifest copiado manualmente.
 - Recursos ToolHive devem ser expostos por Traefik ja no MVP.
-- Endpoints expostos devem usar Authelia OIDC desde o MVP.
+- Endpoints MCP expostos no MVP nao devem usar `forwardAuth` do Authelia; o acesso deve ficar limitado a rede interna/Tailscale.
+- Autenticacao OIDC nativa no ToolHive deve ser tratada como fase 2, usando Authelia como provider OIDC.
 - Endpoints expostos devem ficar acessiveis somente pela rede interna/Tailscale no MVP.
 - MCP servers iniciais devem ser gerenciados no mesmo app/chart `toolhive`, sem app separado no MVP.
 - Secrets devem usar External Secrets Operator com `ClusterSecretStore` `infisical`.
@@ -81,7 +82,7 @@ Decisoes iniciais propostas:
 
 - Migrar roteamento de modelos do LiteLLM para ToolHive.
 - Substituir Obot automaticamente antes de uma avaliacao comparativa.
-- Expor qualquer servidor MCP publico sem autenticacao.
+- Expor qualquer servidor MCP publico na internet.
 - Permitir que usuarios criem servidores MCP arbitrarios fora de GitOps.
 - Armazenar chaves ou tokens em texto puro no Git.
 - Criar todos os MCP servers possiveis no MVP.
@@ -247,22 +248,31 @@ Requisitos:
 - TLS deve usar `platform-wildcard-tls` replicado por Reflector.
 - O MVP deve expor ToolHive por Traefik desde o inicio.
 - A exposicao externa deve ser limitada a rede interna/Tailscale, conforme padrao dos apps de plataforma.
-- O endpoint nao deve ficar publico na internet no MVP, mesmo com Authelia OIDC habilitado.
+- O endpoint nao deve ficar publico na internet no MVP.
 - ToolHive nao deve expor uma UI no MVP; `https://toolhive.platform.the-lab.zone` e um endpoint MCP, nao uma pagina web.
 - O endpoint principal para clientes MCP deve ser `https://toolhive.platform.the-lab.zone/mcp`.
 - Endpoints operacionais esperados no vMCP incluem `/health`, `/ping`, `/status`, `/metrics` e `/api/backends/health`.
 
 ## 8. Autenticacao e autorizacao
 
-Decisao:
+Decisao MVP:
 
-- Endpoints ToolHive expostos por Traefik devem usar Authelia OIDC desde o MVP.
-- Se o recurso ToolHive exposto suportar OIDC nativo, preferir integracao direta com Authelia.
-- Se o recurso ToolHive exposto nao suportar OIDC nativo no caminho adotado, usar middleware de autenticacao do Traefik/Authelia antes do endpoint.
+- Endpoints ToolHive expostos por Traefik nao devem usar middleware `forwardAuth` do Authelia.
+- O `VirtualMCPServer` inicial deve usar `incomingAuth.type: anonymous`.
+- A protecao do MVP depende de exposicao somente por rede interna/Tailscale.
+- O middleware `forwardAuth` do Traefik/Authelia foi removido porque clientes MCP como Zed, Claude Code, Codex CLI e OpenCode nao lidam bem com fluxo browser/redirect HTML no endpoint MCP.
+
+Fase 2:
+
+- Habilitar autenticacao OIDC nativa do ToolHive/MCP no `VirtualMCPServer`, usando Authelia como provider OIDC.
+- Criar client OIDC dedicado para ToolHive no Authelia.
+- Gerenciar client secret e demais secrets por ESO/Infisical.
+- Trocar `incomingAuth.type: anonymous` por configuracao OIDC nativa suportada pelos CRDs ToolHive.
+- Validar login/token flow em clientes MCP alvo antes de tornar autenticacao obrigatoria para todos os consumidores.
 
 Recomendacao inicial:
 
-- Para qualquer endpoint MCP exposto via Traefik, exigir autenticacao.
+- Para qualquer endpoint MCP exposto fora da rede interna/Tailscale, exigir autenticacao OIDC nativa no ToolHive.
 - Para servidores MCP com capacidade mutante, exigir autorizacao explicita por usuario/grupo ou webhook antes de expor a agentes.
 - Segredos de backend devem ser injetados por ESO, com tokens por servidor/ferramenta quando necessario.
 
@@ -450,9 +460,13 @@ Requisitos:
 - Configurar RBAC/allowed namespaces.
 - Validar renderizacao Helm.
 
-### Fase 2 - Seguranca e observabilidade
+### Fase 2 - OIDC nativo, seguranca e observabilidade
 
 - Adicionar ExternalSecrets necessarios.
+- Configurar Authelia como provider OIDC para ToolHive.
+- Criar client OIDC dedicado para ToolHive e armazenar secrets no Infisical.
+- Habilitar autenticacao OIDC nativa do ToolHive no `VirtualMCPServer`.
+- Validar clientes MCP alvo usando o fluxo OIDC nativo antes de bloquear o endpoint anonimo.
 - Habilitar logs estruturados.
 - Habilitar metricas/ServiceMonitor quando suportado.
 - Definir labels consistentes para Grafana/VictoriaMetrics.
@@ -482,4 +496,4 @@ Decisoes que ainda devem ser confirmadas tecnicamente durante a implementacao:
 
 - Formato exato das versoes Helm publicadas para `toolhive-operator-crds` e `toolhive-operator`.
 - Campos finais de `values.yaml` suportados pelos charts oficiais na versao escolhida.
-- Melhor estrategia de Authelia/OIDC para o endpoint exposto: OIDC nativo do recurso ToolHive quando suportado, ou middleware Traefik/Authelia.
+- Campos exatos de OIDC nativo suportados pelos CRDs ToolHive para substituir `incomingAuth.type: anonymous` em fase 2.

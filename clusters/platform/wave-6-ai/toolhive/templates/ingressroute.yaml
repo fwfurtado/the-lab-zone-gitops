@@ -14,8 +14,6 @@ spec:
       middlewares:
         - name: {{ .Values.ingress.headersMiddlewareName }}
           namespace: {{ .Values.ingress.headersMiddlewareNamespace }}
-        - name: {{ .Values.ingress.authMiddlewareName }}
-          namespace: {{ .Values.ingress.authMiddlewareNamespace }}
       services:
         - name: {{ .Values.ingress.serviceName }}
           port: {{ .Values.ingress.servicePort }}
