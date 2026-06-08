@@ -215,19 +215,12 @@ migration-init-databases:
 	PG_PRIMARY=$$($(KUBECTL) get pods -n cloudnativepg -l cnpg.io/cluster=platform-postgres,role=primary -o name | head -1); \
 	AUTHELIA_PW=$$(op read "op://homelab/Authelia Postgres/password"); \
 	FORGEJO_PW=$$(op read "op://homelab/Forgejo Postgres/password"); \
-	OBOT_PW=$$(op read "op://homelab/Obot Database/password"); \
 	echo "--- Creating authelia database and user"; \
 	$(KUBECTL) exec -n cloudnativepg $$PG_PRIMARY -- psql -U postgres -c \
 		"CREATE USER authelia WITH PASSWORD '$$AUTHELIA_PW'; CREATE DATABASE authelia OWNER authelia;" 2>&1 || true; \
 	echo "--- Creating forgejo database and user"; \
 	$(KUBECTL) exec -n cloudnativepg $$PG_PRIMARY -- psql -U postgres -c \
 		"CREATE USER forgejo WITH PASSWORD '$$FORGEJO_PW'; CREATE DATABASE forgejo OWNER forgejo;" 2>&1 || true; \
-	echo "--- Creating obot database and user"; \
-	$(KUBECTL) exec -n cloudnativepg $$PG_PRIMARY -- psql -U postgres -c \
-		"CREATE USER obot WITH PASSWORD '$$OBOT_PW'; CREATE DATABASE obot OWNER obot;" 2>&1 || true; \
-	echo "--- Enabling pgvector extension for obot"; \
-	$(KUBECTL) exec -n cloudnativepg $$PG_PRIMARY -- psql -U postgres -d obot -c \
-		"CREATE EXTENSION IF NOT EXISTS vector;" 2>&1 || true; \
 	echo "==> Database initialization complete"
 
 migration-validate-minio-buckets:

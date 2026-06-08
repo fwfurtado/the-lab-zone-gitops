@@ -15,7 +15,6 @@ Responsabilidades por sistema:
 | Vector database | Qdrant |
 | Knowledge graph database | Neo4j |
 | Tool gateway, MCP runtime em Kubernetes, catalogo/governanca MCP e endpoints governados para agentes | ToolHive |
-| Tool gateway e runtime MCP ja implantado para avaliacao/uso inicial | Obot |
 
 ToolHive nao substitui LiteLLM, LightRAG, Qdrant ou Neo4j. ToolHive deve ser implantado como runtime e plano de governanca MCP, com integracao futura com agentes e clientes que precisam consumir ferramentas aprovadas.
 
@@ -87,7 +86,6 @@ Decisoes iniciais propostas:
 ## 4. Fora de escopo
 
 - Migrar roteamento de modelos do LiteLLM para ToolHive.
-- Substituir Obot automaticamente antes de uma avaliacao comparativa.
 - Expor qualquer servidor MCP publico na internet.
 - Permitir que usuarios criem servidores MCP arbitrarios fora de GitOps.
 - Armazenar chaves ou tokens em texto puro no Git.
@@ -494,25 +492,7 @@ Questoes de seguranca a decidir antes da implementacao:
 - Kubernetes RBAC nao oferece uma permissao forte de `list metadata-only` para Secrets em clientes genericos; liberar `list secrets` pode permitir retorno de `data`.
 - Acesso metadata-only a Secrets deve ser reavaliado em fase futura se o MCP server ou uma camada proxy suportar ferramenta especifica que remova `data`/`stringData` antes de expor a resposta.
 
-## 16. Relacao com Obot
-
-Obot ja existe como gateway/runtime MCP na wave de AI. ToolHive deve ser tratado inicialmente como plataforma MCP paralela para avaliacao tecnica e hardening.
-
-Requisitos:
-
-- Nao remover Obot no MVP ToolHive.
-- Nao migrar consumidores automaticamente.
-- Comparar ToolHive e Obot em:
-  - modelo de autenticacao;
-  - RBAC e isolamento;
-  - facilidade GitOps;
-  - suporte a Virtual MCP/gateway;
-  - observabilidade;
-  - audit logging;
-  - experiencia de clientes como Claude Code, Codex CLI, OpenCode, VS Code e Zed.
-- Definir uma decisao futura de consolidacao apos validacao operacional.
-
-## 17. Criterios de aceite
+## 16. Criterios de aceite
 
 - ArgoCD cria a aplicacao `toolhive` na wave `6`.
 - Namespace `toolhive-system` existe e contem o ToolHive Operator `Ready`.
@@ -532,7 +512,7 @@ Requisitos:
 - Logs do operator e dos MCP workloads estao visiveis.
 - Se metrics forem habilitadas, VictoriaMetrics descobre os targets.
 
-## 18. Plano de implementacao
+## 17. Plano de implementacao
 
 ### Fase 0 - Confirmacao de decisoes
 
@@ -586,7 +566,7 @@ Requisitos:
 - Expor via Traefik se autenticacao estiver definida.
 - Validar cliente externo autorizado.
 
-## 19. Estado das decisoes
+## 18. Estado das decisoes
 
 Todas as decisoes de produto e operacao necessarias para iniciar a implementacao do MVP estao fechadas neste PRD.
 

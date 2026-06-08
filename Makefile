@@ -90,11 +90,9 @@ INFISICAL_FOLDERS := \
 	/neo4j \
 	/lightrag \
 	/litellm \
-	/obot \
 	/toolhive \
 	/toolhive/mcp \
-	/toolhive/mcp/grafana \
-	/database/obot
+	/toolhive/mcp/grafana
 
 infisical-init-folders:
 	@CLIENT_ID=$$(kubectl -n external-secrets get secret infisical-credentials -o jsonpath='{.data.clientId}' | base64 -d); \
