@@ -44,6 +44,10 @@ mcp-stack:
 
     containerPort: 4444
 
+    env:
+      postgres:
+        driver: psycopg2
+
     ingress:
       enabled: false
 
@@ -138,11 +142,6 @@ mcp-stack:
       OBSERVABILITY_ENABLED: "false"
 
     secret: null
-
-    extraEnv:
-      - name: DATABASE_URL
-        value: >-
-          postgresql+psycopg2://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
 
   migration:
     enabled: false
