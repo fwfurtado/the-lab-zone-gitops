@@ -67,6 +67,10 @@ spec:
       key: GRAFANA_SERVICE_ACCOUNT_TOKEN
       targetEnvName: GRAFANA_SERVICE_ACCOUNT_TOKEN
   {{- end }}
+  {{- if $server.podTemplateSpec }}
+  podTemplateSpec:
+    {{- toYaml $server.podTemplateSpec | nindent 4 }}
+  {{- end }}
   resources:
     {{- toYaml (default $defaults.resources $server.resources) | nindent 4 }}
 {{- end }}

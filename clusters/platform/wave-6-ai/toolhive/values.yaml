@@ -226,13 +226,17 @@ mcp:
       transport: streamable-http
       proxyPort: 8080
       mcpPort: 8000
+      env:
+        HOME: /tmp
+        UV_CACHE_DIR: /tmp/uv-cache
+        XDG_CACHE_HOME: /tmp/.cache
       args:
         - uv
         - tool
         - run
         - --from
         - lightrag-mcp==0.1.1
-        - lightrag_mcp
+        - lightrag-mcp
         - --mcp-transport
         - streamable-http
         - --mcp-host
@@ -251,6 +255,16 @@ mcp:
         - name: toolhive-lightrag
           key: LIGHTRAG_API_KEY
           targetEnvName: LIGHTRAG_API_KEY
+      podTemplateSpec:
+        spec:
+          volumes:
+            - name: tmp
+              emptyDir: {}
+          containers:
+            - name: mcp
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
       resources:
         requests:
           cpu: 100m
