@@ -34,8 +34,8 @@ mcp-stack:
       enabled: false
 
     image:
-      repository: ghcr.io/ibm/mcp-context-forge@sha256
-      tag: "1806c964cb75d547bba63ba91aabf0cee534579937c2f1894cffe9b5b6995049"
+      repository: ghcr.io/ibm/mcp-context-forge
+      tag: latest
       pullPolicy: IfNotPresent
 
     service:
@@ -146,8 +146,8 @@ mcp-stack:
   migration:
     enabled: false
     image:
-      repository: ghcr.io/ibm/mcp-context-forge@sha256
-      tag: "1806c964cb75d547bba63ba91aabf0cee534579937c2f1894cffe9b5b6995049"
+      repository: ghcr.io/ibm/mcp-context-forge
+      tag: latest
       pullPolicy: IfNotPresent
 
   postgres:
