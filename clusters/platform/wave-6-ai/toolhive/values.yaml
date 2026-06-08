@@ -226,16 +226,8 @@ mcp:
       transport: streamable-http
       proxyPort: 8080
       mcpPort: 8000
-      env:
-        HOME: /tmp
-        UV_CACHE_DIR: /tmp/uv-cache
-        XDG_CACHE_HOME: /tmp/.cache
       args:
-        - uv
-        - tool
-        - run
-        - --from
-        - lightrag-mcp==0.1.1
+        - uvx
         - lightrag-mcp
         - --mcp-transport
         - streamable-http
