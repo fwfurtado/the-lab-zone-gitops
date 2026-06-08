@@ -61,13 +61,14 @@ env:
   MAX_ASYNC_LLM: "4"
   EMBEDDING_FUNC_MAX_ASYNC: "8"
   EMBEDDING_BATCH_NUM: "16"
-  LLM_BINDING: ollama
-  LLM_MODEL: ""
-  LLM_BINDING_HOST: ""
-  EMBEDDING_BINDING: ollama
-  EMBEDDING_MODEL: ""
-  EMBEDDING_DIM: ""
-  EMBEDDING_TOKEN_LIMIT: ""
+  LLM_BINDING: openai
+  LLM_MODEL: lab-chat-fast
+  LLM_BINDING_HOST: http://litellm.litellm.svc.cluster.local:4000
+  EMBEDDING_BINDING: openai
+  EMBEDDING_MODEL: lab-embedding-default
+  EMBEDDING_BINDING_HOST: http://litellm.litellm.svc.cluster.local:4000
+  EMBEDDING_DIM: "1024"
+  EMBEDDING_TOKEN_LIMIT: "8192"
 
 secret:
   name: lightrag-env
