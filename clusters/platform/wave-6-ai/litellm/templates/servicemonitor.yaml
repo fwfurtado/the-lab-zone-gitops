@@ -16,5 +16,11 @@ spec:
       - "{{ .Release.Namespace }}"
   endpoints:
     - port: http
+      path: /metrics
       interval: "{{ .Values.monitoring.serviceMonitor.interval }}"
       scrapeTimeout: "{{ .Values.monitoring.serviceMonitor.scrapeTimeout }}"
+      authorization:
+        type: Bearer
+        credentials:
+          name: "{{ .Values.monitoring.serviceMonitor.authorization.secretName }}"
+          key: "{{ .Values.monitoring.serviceMonitor.authorization.secretKey }}"

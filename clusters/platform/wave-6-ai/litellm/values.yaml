@@ -192,6 +192,10 @@ litellm:
       request_timeout: 60
       num_retries: 2
       drop_params: true
+      callbacks:
+        - prometheus
+      prometheus_initialize_budget_metrics: true
+      require_auth_for_metrics_endpoint: true
       success_callback: []
       failure_callback: []
       fallbacks:
@@ -228,3 +232,6 @@ monitoring:
     enabled: true
     interval: 30s
     scrapeTimeout: 10s
+    authorization:
+      secretName: litellm-env
+      secretKey: masterkey
