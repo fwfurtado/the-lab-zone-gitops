@@ -35,7 +35,7 @@ mcp-stack:
 
     image:
       repository: ghcr.io/ibm/mcp-context-forge
-      tag: v1.0.1
+      tag: 0.9.0
       pullPolicy: IfNotPresent
 
     service:
@@ -147,7 +147,7 @@ mcp-stack:
     enabled: false
     image:
       repository: ghcr.io/ibm/mcp-context-forge
-      tag: v1.0.1
+      tag: 0.9.0
       pullPolicy: IfNotPresent
 
   postgres:
