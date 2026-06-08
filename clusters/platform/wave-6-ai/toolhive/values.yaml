@@ -47,7 +47,7 @@ ingress:
   authMiddlewareName: authelia-forwardauth
   authMiddlewareNamespace: traefik
   serviceName: vmcp-lab-tools
-  servicePort: 8080
+  servicePort: 4483
 
 monitoring:
   service:

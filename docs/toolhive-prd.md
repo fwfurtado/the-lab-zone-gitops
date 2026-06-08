@@ -248,7 +248,9 @@ Requisitos:
 - O MVP deve expor ToolHive por Traefik desde o inicio.
 - A exposicao externa deve ser limitada a rede interna/Tailscale, conforme padrao dos apps de plataforma.
 - O endpoint nao deve ficar publico na internet no MVP, mesmo com Authelia OIDC habilitado.
-- Se houver UI/Portal self-hosted oficial no chart escolhido, usar o mesmo host ou subdominio separado, a confirmar.
+- ToolHive nao deve expor uma UI no MVP; `https://toolhive.platform.the-lab.zone` e um endpoint MCP, nao uma pagina web.
+- O endpoint principal para clientes MCP deve ser `https://toolhive.platform.the-lab.zone/mcp`.
+- Endpoints operacionais esperados no vMCP incluem `/health`, `/ping`, `/status`, `/metrics` e `/api/backends/health`.
 
 ## 8. Autenticacao e autorizacao
 
