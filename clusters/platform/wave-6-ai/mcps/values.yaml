@@ -1,0 +1,168 @@
+namespace:
+  name: mcps
+  podSecurity:
+    enforce: baseline
+    audit: restricted
+    warn: restricted
+
+ingress:
+  enabled: true
+  tlsSecretName: mcp-wildcard-tls
+  headersMiddlewareName: default-headers
+  headersMiddlewareNamespace: traefik
+  mcpDomain: mcp.the-lab.zone
+  groupDomain: group.mcp.the-lab.zone
+
+telemetry:
+  enabled: true
+  prometheus:
+    enabled: true
+
+defaults:
+  proxyPort: 8080
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+groups:
+  lab-tools:
+    enabled: true
+    name: lab-tools
+    description: The Lab Zone MVP MCP tools exposed through ToolHive.
+    virtual:
+      enabled: true
+      replicas: 1
+      incomingAuth:
+        type: anonymous
+
+secrets:
+  grafana:
+    enabled: true
+    name: toolhive-grafana
+    remoteRefs:
+      serviceAccountToken: /toolhive/mcp/grafana/token
+  lightrag:
+    enabled: true
+    name: toolhive-lightrag
+    remoteRefs:
+      apiKey: /lightrag/api-key
+
+servers:
+  toolhiveDocs:
+    enabled: true
+    name: toolhive-docs
+    title: ToolHive Docs
+    description: ToolHive documentation search MCP server.
+    group: lab-tools
+    image: ghcr.io/stackloklabs/toolhive-doc-mcp:v0.0.13-20260511
+    transport: streamable-http
+    mcpPort: 8080
+    env:
+      REFRESH_ENABLED: "false"
+      OTEL_ENABLED: "false"
+
+  fetch:
+    enabled: true
+    name: fetch
+    title: Fetch
+    description: Fetch web content for MCP clients.
+    group: lab-tools
+    image: ghcr.io/stackloklabs/gofetch/server:1.0.3
+    transport: streamable-http
+    mcpPort: 8080
+    permissionProfile:
+      type: builtin
+      name: network
+    # Future allowlist hook:
+    # Replace builtin network with a configmap permission profile that limits
+    # outbound hosts/ports when Fetch/GoFetch should no longer be open.
+    # allowlist:
+    #   domains:
+    #     - docs.stacklok.com
+
+  kubernetes:
+    enabled: true
+    name: kubernetes-readonly
+    title: Kubernetes Readonly
+    description: Read-only Kubernetes cluster inspection MCP server.
+    group: lab-tools
+    image: ghcr.io/stackloklabs/mkp/server:0.4.0
+    transport: streamable-http
+    mcpPort: 8080
+    serviceAccountName: toolhive-kubernetes-readonly
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  grafana:
+    enabled: true
+    name: grafana-readonly
+    title: Grafana Readonly
+    description: Read-only Grafana MCP server.
+    group: lab-tools
+    image: docker.io/grafana/mcp-grafana:0.14.0
+    transport: sse
+    registry:
+      path: /sse
+    mcpPort: 8000
+    env:
+      GRAFANA_URL: http://grafana.grafana.svc.cluster.local
+      GRAFANA_ORG_ID: "1"
+    secretName: toolhive-grafana
+
+  lightrag:
+    enabled: true
+    name: lightrag
+    title: LightRAG
+    description: LightRAG MCP server for RAG search and document workflows.
+    group: lab-tools
+    image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+    transport: streamable-http
+    proxyPort: 8080
+    mcpPort: 8000
+    args:
+      - uvx
+      - lightrag-mcp
+      - --mcp-transport
+      - streamable-http
+      - --mcp-host
+      - 0.0.0.0
+      - --mcp-port
+      - "8000"
+      - --mcp-streamable-http-path
+      - /mcp
+      - --host
+      - lightrag.lightrag.svc.cluster.local
+      - --port
+      - "9621"
+      - --api-key
+      - $(LIGHTRAG_API_KEY)
+    secrets:
+      - name: toolhive-lightrag
+        key: LIGHTRAG_API_KEY
+        targetEnvName: LIGHTRAG_API_KEY
+    podTemplateSpec:
+      spec:
+        volumes:
+          - name: tmp
+            emptyDir: {}
+        containers:
+          - name: mcp
+            volumeMounts:
+              - name: tmp
+                mountPath: /tmp
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi

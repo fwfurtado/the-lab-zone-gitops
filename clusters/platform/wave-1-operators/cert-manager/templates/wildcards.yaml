@@ -30,7 +30,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
     reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-    reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,argocd,coder,argo-workflows,openclaw,neo4j,toolhive-system,toolhive-mcp"
+    reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,argocd,coder,argo-workflows,openclaw,neo4j,toolhive-system"
 spec:
   secretName: platform-wildcard-tls
   issuerRef:
@@ -42,7 +42,31 @@ spec:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,argocd,coder,argo-workflows,openclaw,neo4j,toolhive-system,toolhive-mcp"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,argocd,coder,argo-workflows,openclaw,neo4j,toolhive-system"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mcp-wildcard
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+    reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+    reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,mcps"
+spec:
+  secretName: mcp-wildcard-tls
+  issuerRef:
+    name: letsencrypt-cloudflare
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.mcp.the-lab.zone"
+    - "*.group.mcp.the-lab.zone"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "traefik,mcps"
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

@@ -15,3 +15,13 @@ spec:
       recordType: A
       targets:
         - "10.40.2.1"
+    - dnsName: "*.mcp.the-lab.zone"
+      recordTTL: 300
+      recordType: A
+      targets:
+        - "10.40.2.1"
+    - dnsName: "*.group.mcp.the-lab.zone"
+      recordTTL: 300
+      recordType: A
+      targets:
+        - "10.40.2.1"

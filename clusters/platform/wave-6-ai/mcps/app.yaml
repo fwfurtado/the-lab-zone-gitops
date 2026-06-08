@@ -1,0 +1,4 @@
+app:
+  name: mcps
+  namespace: mcps
+  syncWave: "7"

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mcps
+description: ToolHive MCP servers and virtual MCP groups for The Lab Zone
+type: application
+version: 0.1.0
+appVersion: "0.29.1"

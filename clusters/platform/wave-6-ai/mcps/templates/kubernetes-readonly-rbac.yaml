@@ -1,10 +1,10 @@
-{{- if .Values.mcp.servers.kubernetes.enabled }}
+{{- if .Values.servers.kubernetes.enabled }}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.mcp.servers.kubernetes.serviceAccountName }}
-  namespace: {{ .Values.runtimeNamespace.name }}
+  name: {{ .Values.servers.kubernetes.serviceAccountName }}
+  namespace: {{ .Values.namespace.name }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -92,6 +92,6 @@ roleRef:
   name: toolhive-kubernetes-readonly
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.mcp.servers.kubernetes.serviceAccountName }}
-    namespace: {{ .Values.runtimeNamespace.name }}
+    name: {{ .Values.servers.kubernetes.serviceAccountName }}
+    namespace: {{ .Values.namespace.name }}
 {{- end }}

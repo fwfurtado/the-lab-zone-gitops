@@ -1,0 +1,110 @@
+{{- $namespace := .Values.namespace.name }}
+{{- $telemetryEnabled := .Values.telemetry.enabled }}
+{{- range $key, $group := .Values.groups }}
+{{- if $group.enabled }}
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPGroup
+metadata:
+  name: {{ $group.name }}
+  namespace: {{ $namespace }}
+spec:
+  description: {{ $group.description | quote }}
+{{- if $telemetryEnabled }}
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPTelemetryConfig
+metadata:
+  name: {{ $group.name }}-telemetry
+  namespace: {{ $namespace }}
+spec:
+  prometheus:
+    enabled: {{ $.Values.telemetry.prometheus.enabled }}
+{{- end }}
+{{- if $group.virtual.enabled }}
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: VirtualMCPServer
+metadata:
+  name: {{ $group.name }}
+  namespace: {{ $namespace }}
+  annotations:
+    toolhive.stacklok.dev/registry-export: "true"
+    toolhive.stacklok.dev/registry-title: {{ $group.name | quote }}
+    toolhive.stacklok.dev/registry-url: {{ printf "https://%s.%s/mcp" $group.name $.Values.ingress.groupDomain | quote }}
+    toolhive.stacklok.dev/registry-description: {{ printf "Virtual MCP Server for the %s group." $group.name | quote }}
+spec:
+  groupRef:
+    name: {{ $group.name }}
+  incomingAuth:
+    type: {{ $group.virtual.incomingAuth.type }}
+  {{- if $telemetryEnabled }}
+  telemetryConfigRef:
+    name: {{ $group.name }}-telemetry
+  {{- end }}
+  replicas: {{ $group.virtual.replicas }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $defaults := .Values.defaults }}
+{{- range $key, $server := .Values.servers }}
+{{- if $server.enabled }}
+{{- $registry := default dict $server.registry }}
+{{- $registryPath := default (ternary "/sse" "/mcp" (eq $server.transport "sse")) $registry.path }}
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: {{ $server.name }}
+  namespace: {{ $.Values.namespace.name }}
+  annotations:
+    toolhive.stacklok.dev/registry-export: "true"
+    toolhive.stacklok.dev/registry-title: {{ default $server.name $server.title | quote }}
+    toolhive.stacklok.dev/registry-url: {{ printf "https://%s.%s%s" $server.name $.Values.ingress.mcpDomain $registryPath | quote }}
+    toolhive.stacklok.dev/registry-description: {{ $server.description | quote }}
+spec:
+  image: {{ $server.image }}
+  transport: {{ $server.transport }}
+  proxyPort: {{ default $defaults.proxyPort $server.proxyPort }}
+  mcpPort: {{ $server.mcpPort }}
+  {{- if $server.args }}
+  args:
+    {{- toYaml $server.args | nindent 4 }}
+  {{- end }}
+  groupRef:
+    name: {{ $server.group }}
+  {{- if $server.serviceAccountName }}
+  serviceAccount: {{ $server.serviceAccountName }}
+  {{- end }}
+  {{- if $server.permissionProfile }}
+  permissionProfile:
+    {{- toYaml $server.permissionProfile | nindent 4 }}
+  {{- end }}
+  {{- if $telemetryEnabled }}
+  telemetryConfigRef:
+    name: {{ $server.group }}-telemetry
+  {{- end }}
+  {{- if $server.env }}
+  env:
+    {{- range $name, $value := $server.env }}
+    - name: {{ $name }}
+      value: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  {{- if $server.secrets }}
+  secrets:
+    {{- toYaml $server.secrets | nindent 4 }}
+  {{- else if $server.secretName }}
+  secrets:
+    - name: {{ $server.secretName }}
+      key: GRAFANA_SERVICE_ACCOUNT_TOKEN
+      targetEnvName: GRAFANA_SERVICE_ACCOUNT_TOKEN
+  {{- end }}
+  {{- if $server.podTemplateSpec }}
+  podTemplateSpec:
+    {{- toYaml $server.podTemplateSpec | nindent 4 }}
+  {{- end }}
+  resources:
+    {{- toYaml (default $defaults.resources $server.resources) | nindent 4 }}
+{{- end }}
+{{- end }}

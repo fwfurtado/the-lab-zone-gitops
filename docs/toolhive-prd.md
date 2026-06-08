@@ -21,8 +21,9 @@ ToolHive nao substitui LiteLLM, LightRAG, Qdrant ou Neo4j. ToolHive deve ser imp
 
 Decisoes iniciais propostas:
 
-- ToolHive deve ser implantado em `clusters/platform/wave-6-ai/toolhive/`.
-- A aplicacao deve usar um umbrella chart local.
+- ToolHive Operator e ToolHive Registry Server devem ser implantados em `clusters/platform/wave-6-ai/toolhive/`.
+- MCPServers, MCPGroups, VirtualMCPServers, ingress dos MCPs e secrets de runtime devem ser implantados em `clusters/platform/wave-6-ai/mcps/`.
+- Cada aplicacao deve usar um chart local proprio.
 - O umbrella chart deve declarar dependencias para os charts oficiais OCI da Stacklok:
   - `oci://ghcr.io/stacklok/toolhive/toolhive-operator-crds`
   - `oci://ghcr.io/stacklok/toolhive/toolhive-operator`
@@ -30,17 +31,18 @@ Decisoes iniciais propostas:
 - A versao inicial proposta deve seguir a release estavel mais recente validada no momento da implementacao. Em 2026-06-08, a release upstream observada e `v0.29.1`, publicada em 2026-06-04.
 - A versao final do chart e das imagens deve ser fixada no `Chart.yaml` e no `values.yaml`; nao usar `latest`.
 - O namespace do operator deve ser `toolhive-system`, conforme documentacao oficial.
-- O runtime/workloads MCP devem usar namespace dedicado `toolhive-mcp`.
+- O runtime/workloads MCP devem usar namespace dedicado `mcps`.
 - A sync wave deve ser `6`.
-- O operator deve iniciar em modo `namespace`, limitado ao namespace `toolhive-mcp`.
+- O operator deve iniciar em modo `namespace`, limitado ao namespace `mcps`.
 - CRDs devem ser gerenciadas pelo chart oficial de CRDs, nao por manifest copiado manualmente.
 - Recursos ToolHive devem ser expostos por Traefik ja no MVP.
 - Endpoints MCP expostos no MVP nao devem usar `forwardAuth` do Authelia; o acesso deve ficar limitado a rede interna/Tailscale.
 - Autenticacao OIDC nativa no ToolHive deve ser tratada como fase 2, usando Authelia como provider OIDC.
 - Endpoints expostos devem ficar acessiveis somente pela rede interna/Tailscale no MVP.
-- O endpoint MCP principal deve usar o host `mcp.platform.the-lab.zone`.
+- Cada MCPServer deve ter seu proprio host no padrao `<mcp-name>.mcp.the-lab.zone`.
+- Cada grupo deve ter um VirtualMCPServer exposto no padrao `<group-name>.group.mcp.the-lab.zone`.
 - O ToolHive Registry Server deve usar o host `toolhive.platform.the-lab.zone`.
-- MCP servers iniciais devem ser gerenciados no mesmo app/chart `toolhive`, sem app separado no MVP.
+- MCP servers iniciais devem ser gerenciados no app/chart `mcps`, separado do app `toolhive`.
 - O Registry Server deve ser implantado no mesmo app/chart `toolhive` para catalogo e descoberta governada.
 - Secrets devem usar External Secrets Operator com `ClusterSecretStore` `infisical`.
 - Observabilidade deve usar VictoriaMetrics/Grafana via metricas Prometheus e/ou OpenTelemetry quando suportado pelo chart/CRDs.
@@ -65,7 +67,7 @@ Decisoes iniciais propostas:
 - Permitir que clientes como Claude Code, Codex CLI, OpenCode, VS Code, Zed e agentes internos consumam ferramentas aprovadas.
 - Fornecer um caminho Kubernetes-native para publicar ferramentas internas com isolamento por container.
 - Permitir catalogo e agrupamento de ferramentas por finalidade, risco e publico consumidor.
-- Preparar a plataforma para Virtual MCP Servers, permitindo expor um unico endpoint MCP composto por multiplos backends.
+- Preparar a plataforma para Virtual MCP Servers, permitindo expor endpoints MCP compostos por multiplos backends e organizados por grupo.
 - Manter rastreabilidade operacional de execucao, logs, metricas e auditoria de ferramentas.
 
 ### 3.2 Objetivos tecnicos
@@ -75,7 +77,7 @@ Decisoes iniciais propostas:
 - Fixar versoes do chart e imagens.
 - Instalar e manter CRDs ToolHive via chart oficial.
 - Habilitar o operator no namespace `toolhive-system`.
-- Criar namespace `toolhive-mcp` para MCP workloads.
+- Criar namespace `mcps` para MCP workloads.
 - Configurar RBAC de menor privilegio viavel no MVP.
 - Configurar resources, probes e limites iniciais para operator e workloads MCP.
 - Integrar logs e metricas com a stack de observabilidade existente.
@@ -103,34 +105,41 @@ Decisoes iniciais propostas:
 |---|---|---|
 | ToolHive Operator CRDs | Define APIs Kubernetes do ToolHive | cluster-scoped |
 | ToolHive Operator | Reconcilia CRs e cria workloads MCP | `toolhive-system` |
-| MCP workloads | Servidores MCP containerizados e proxies | `toolhive-mcp` |
-| Virtual MCP Server | Endpoint agregado de multiplos MCP backends | `toolhive-mcp` |
+| MCP workloads | Servidores MCP containerizados e proxies | `mcps` |
+| Virtual MCP Server | Endpoint agregado de multiplos MCP backends por grupo | `mcps` |
 | Registry Server | Catalogo de MCP servers aprovados e descoberta governada | `toolhive-system` |
-| Traefik IngressRoute | Exposicao HTTPS de endpoints MCP e Registry Server | `toolhive-mcp` e `toolhive-system` |
+| Traefik IngressRoute | Exposicao HTTPS de endpoints MCP, grupos e Registry Server | `mcps` e `toolhive-system` |
 | ESO/Infisical | Secrets para auth, tokens e backends | namespaces consumidores |
 | VictoriaMetrics/Grafana | Observabilidade | `monitoring`/stack existente |
 
 ### 5.2 Fluxo esperado
 
-1. ArgoCD sincroniza o umbrella chart `toolhive`.
-2. O umbrella chart instala/atualiza CRDs oficiais.
-3. O umbrella chart instala o ToolHive Operator.
-4. O chart local cria namespace, ExternalSecrets e recursos auxiliares da plataforma.
-5. Recursos MCP sao adicionados por GitOps em templates locais ou apps dedicados.
-6. O operator reconcilia `MCPServer`, `MCPRemoteProxy`, `MCPGroup` e `VirtualMCPServer`.
-7. Clientes MCP acessam endpoints internos ou expostos via Traefik, conforme politica de autenticacao.
+1. ArgoCD sincroniza o app `toolhive`.
+2. O app `toolhive` instala/atualiza CRDs oficiais, ToolHive Operator e Registry Server.
+3. ArgoCD sincroniza o app `mcps`.
+4. O app `mcps` cria namespace, ExternalSecrets, RBAC e recursos MCP.
+5. O operator reconcilia `MCPServer`, `MCPRemoteProxy`, `MCPGroup` e `VirtualMCPServer` no namespace `mcps`.
+6. Cada `MCPServer` e cada `VirtualMCPServer` por grupo e exposto por Traefik.
+7. O Registry Server descobre os recursos anotados no namespace `mcps` e publica entradas individuais.
+8. Clientes MCP acessam endpoints internos ou expostos via Traefik, conforme politica de autenticacao.
 
 ## 6. Kubernetes e GitOps
 
 ### 6.1 Localizacao
 
-ToolHive deve ser adicionado em:
+ToolHive Operator e Registry Server devem ser adicionados em:
 
 ```text
 clusters/platform/wave-6-ai/toolhive/
 ```
 
-Estrutura esperada:
+MCPServers e grupos devem ser adicionados em:
+
+```text
+clusters/platform/wave-6-ai/mcps/
+```
+
+Estrutura esperada do app `toolhive`:
 
 ```text
 toolhive/
@@ -139,16 +148,25 @@ toolhive/
   values.yaml
   templates/
     external-secret.yaml
-    ingressroute.yaml
     registry-ingressroute.yaml
-    namespace-mcp.yaml
-    telemetry.yaml
-    mcp-groups.yaml
-    mcp-tool-configs.yaml
-    virtual-mcp-server.yaml
 ```
 
-Nem todos os templates precisam existir no primeiro commit. O MVP deve incluir apenas os recursos necessarios para boot seguro e validacao funcional.
+Estrutura esperada do app `mcps`:
+
+```text
+mcps/
+  app.yaml
+  Chart.yaml
+  values.yaml
+  templates/
+    namespace.yaml
+    external-secret.yaml
+    kubernetes-readonly-rbac.yaml
+    mcps.yaml
+    ingressroute.yaml
+```
+
+O app `toolhive` nao deve conter definicoes de `MCPServer`, `MCPGroup` ou `VirtualMCPServer`. Esses recursos pertencem ao app `mcps`.
 
 ### 6.2 ArgoCD
 
@@ -161,9 +179,19 @@ app:
   syncWave: "6"
 ```
 
+`app.yaml` proposto para `mcps`:
+
+```yaml
+app:
+  name: mcps
+  namespace: mcps
+  syncWave: "7"
+```
+
 Requisitos:
 
 - ArgoCD deve renderizar o umbrella chart com `--include-crds` quando aplicavel ao padrao do repositorio.
+- O app `mcps` deve sincronizar depois de `toolhive`, pois depende das CRDs ToolHive e do operator.
 - A remocao do app deve ser tratada com cuidado porque `prune: true` pode remover recursos ToolHive gerenciados pelo Git.
 - CRDs devem usar politica de retencao do chart oficial quando disponivel, para evitar delecao acidental de CRs.
 - Caso o chart oficial de CRDs nao funcione corretamente como dependencia Helm no fluxo atual, a implementacao deve dividir em dois apps GitOps:
@@ -214,7 +242,7 @@ Configuracao inicial proposta:
 | Namespace | `toolhive-system` |
 | Replicas | `1` no MVP |
 | RBAC | `namespace` |
-| Allowed namespaces | `toolhive-mcp` |
+| Allowed namespaces | `mcps` |
 | Runner image | `ghcr.io/stacklok/toolhive:v0.29.1` |
 | Resources request | `100m`, `256Mi` |
 | Resources limit | `500m`, `1Gi` |
@@ -223,7 +251,7 @@ Configuracao inicial proposta:
 Justificativa:
 
 - O modo `namespace` reduz blast radius no MVP.
-- Modo `namespace` significa que o operator so pode criar e reconciliar workloads ToolHive nos namespaces permitidos, inicialmente `toolhive-mcp`.
+- Modo `namespace` significa que o operator so pode criar e reconciliar workloads ToolHive nos namespaces permitidos, inicialmente `mcps`.
 - Modo `cluster` significa que o operator pode criar e reconciliar workloads ToolHive em qualquer namespace do cluster; isso e util quando times/apps diferentes vao hospedar MCPs nos seus proprios namespaces, mas aumenta o escopo de permissao do operator.
 - O MCP Kubernetes readonly ainda pode consultar o cluster inteiro mesmo com o operator em modo `namespace`, desde que o MCP server use uma ServiceAccount propria com `ClusterRole` readonly. O escopo do operator e o escopo da ferramenta Kubernetes sao decisoes separadas.
 - Uma replica e suficiente para validacao inicial.
@@ -236,7 +264,7 @@ Configuracao inicial proposta:
 
 | Item | Valor proposto |
 |---|---|
-| Namespace | `toolhive-mcp` |
+| Namespace | `mcps` |
 | Pod Security Admission | `baseline` enforce, `restricted` audit/warn |
 | StorageClass | `proxmox-lvm` quando houver PVC |
 | Resources default | request `50m/128Mi`, limit `500m/512Mi` |
@@ -248,19 +276,22 @@ Configuracao inicial proposta:
 Hosts propostos:
 
 ```text
-mcp.platform.the-lab.zone       # Virtual MCP Server para clientes MCP
-toolhive.platform.the-lab.zone  # ToolHive Registry Server
+<mcp-name>.mcp.the-lab.zone         # MCPServer individual
+<group-name>.group.mcp.the-lab.zone # Virtual MCP Server por grupo
+toolhive.platform.the-lab.zone      # ToolHive Registry Server
 ```
 
 Requisitos:
 
 - Endpoints HTTP expostos devem usar Traefik `IngressRoute`.
-- TLS deve usar `platform-wildcard-tls` replicado por Reflector.
+- TLS de MCPs deve usar `mcp-wildcard-tls`, cobrindo `*.mcp.the-lab.zone` e `*.group.mcp.the-lab.zone`, replicado por Reflector para `mcps`.
+- TLS do Registry Server deve usar `platform-wildcard-tls` replicado por Reflector para `toolhive-system`.
 - O MVP deve expor ToolHive por Traefik desde o inicio.
 - A exposicao externa deve ser limitada a rede interna/Tailscale, conforme padrao dos apps de plataforma.
 - O endpoint nao deve ficar publico na internet no MVP.
 - ToolHive nao deve expor uma UI administrativa web no MVP.
-- O endpoint principal para clientes MCP deve ser `https://mcp.platform.the-lab.zone/mcp`.
+- Endpoints individuais de MCPServer devem seguir `https://<mcp-name>.mcp.the-lab.zone/mcp` para `streamable-http` e `https://<mcp-name>.mcp.the-lab.zone/sse` para `sse`.
+- Endpoints de grupo devem seguir `https://<group-name>.group.mcp.the-lab.zone/mcp`.
 - O Registry Server deve ser exposto em `https://toolhive.platform.the-lab.zone`.
 - Endpoints operacionais esperados no vMCP incluem `/health`, `/ping`, `/status`, `/metrics` e `/api/backends/health`.
 
@@ -269,13 +300,13 @@ Requisitos:
 Decisao MVP:
 
 - Endpoints ToolHive expostos por Traefik nao devem usar middleware `forwardAuth` do Authelia.
-- O `VirtualMCPServer` inicial deve usar `incomingAuth.type: anonymous`.
+- Os `VirtualMCPServer` iniciais devem usar `incomingAuth.type: anonymous`.
 - A protecao do MVP depende de exposicao somente por rede interna/Tailscale.
 - O middleware `forwardAuth` do Traefik/Authelia foi removido porque clientes MCP como Zed, Claude Code, Codex CLI e OpenCode nao lidam bem com fluxo browser/redirect HTML no endpoint MCP.
 
 Fase 2:
 
-- Habilitar autenticacao OIDC nativa do ToolHive/MCP no `VirtualMCPServer`, usando Authelia como provider OIDC.
+- Habilitar autenticacao OIDC nativa do ToolHive/MCP nos `VirtualMCPServer`, usando Authelia como provider OIDC.
 - Criar client OIDC dedicado para ToolHive no Authelia.
 - Gerenciar client secret e demais secrets por ESO/Infisical.
 - Trocar `incomingAuth.type: anonymous` por configuracao OIDC nativa suportada pelos CRDs ToolHive.
@@ -307,7 +338,7 @@ Requisitos:
 
 - Nenhum token de MCP server deve aparecer em `values.yaml`.
 - MCP servers que acessam Kubernetes devem preferir ServiceAccount dedicada e RBAC minimo.
-- MCP servers que acessam APIs externas devem receber secrets por ExternalSecret local ao namespace `toolhive-mcp`.
+- MCP servers que acessam APIs externas devem receber secrets por ExternalSecret local ao namespace `mcps`.
 
 ## 10. MCP servers iniciais
 
@@ -334,14 +365,16 @@ Fetch/GoFetch deve ficar sem allowlist no MVP. A implementacao deve deixar a est
 
 ## 11. Virtual MCP Server
 
-Um Virtual MCP Server e um endpoint MCP agregado. Em vez de cada cliente configurar varios servidores MCP separados, o ToolHive pode publicar um unico endpoint que combina backends como docs/search, fetch, Kubernetes readonly e Grafana readonly. Ele tambem permite aplicar configuracao comum, filtragem de tools e politicas de acesso no ponto de entrada.
+Um Virtual MCP Server e um endpoint MCP agregado. Em vez de cada cliente configurar varios servidores MCP separados, o ToolHive pode publicar endpoints por grupo que combinam backends como docs/search, fetch, Kubernetes readonly e Grafana readonly. Ele tambem permite aplicar configuracao comum, filtragem de tools e politicas de acesso no ponto de entrada.
 
 Analogia pratica: `MCPServer` e um servidor/ferramenta individual; `VirtualMCPServer` e uma fachada/gateway que agrupa varios `MCPServer` e entrega um endpoint unico para os clientes.
 
-O MVP deve incluir um Virtual MCP Server unico para consumidores internos:
+O MVP deve incluir um Virtual MCP Server por grupo declarado no app `mcps`.
+
+O grupo inicial deve ser `lab-tools`:
 
 ```text
-https://mcp.platform.the-lab.zone/mcp
+https://lab-tools.group.mcp.the-lab.zone/mcp
 ```
 
 Composicao inicial proposta:
@@ -353,14 +386,16 @@ Composicao inicial proposta:
 
 Requisitos:
 
-- Usar `MCPGroup` para agrupar MCP servers por dominio.
+- Cada MCPServer deve declarar no `values.yaml` qual grupo operacional usa por meio de `group: <group-name>`.
+- Para cada grupo habilitado em `values.yaml`, o chart `mcps` deve criar um `MCPGroup`.
+- Para cada grupo com `virtual.enabled: true`, o chart `mcps` deve criar um `VirtualMCPServer` e um `IngressRoute`.
 - Usar `MCPToolConfig` para filtrar/renomear ferramentas perigosas ou ruidosas.
 - Nao expor ferramentas mutantes no Virtual MCP Server inicial.
 - Documentar nomes finais de tools aceitas por clientes.
 
 ## 12. Registry Server
 
-O ToolHive Registry Server deve ser implantado no mesmo umbrella chart `toolhive` para entregar catalogo governado e descoberta de MCP servers aprovados.
+O ToolHive Registry Server deve ser implantado no app/chart `toolhive` para entregar catalogo governado e descoberta de MCP servers aprovados. Os recursos publicados no catalogo devem ser criados pelo app `mcps`.
 
 Configuracao MVP:
 
@@ -374,17 +409,23 @@ Configuracao MVP:
 | Banco | PostgreSQL compartilhado `postgres.database.svc.cluster.local:5432` |
 | Database/user | `toolhive_registry` |
 | Secret | `/database/toolhive-registry/password` via ESO/Infisical |
-| RBAC | `namespace`, limitado a `toolhive-mcp` |
+| RBAC | `namespace`, limitado a `mcps` |
 
 Fontes iniciais:
 
 - `toolhive-upstream`: catalogo upstream `https://github.com/stacklok/toolhive-catalog.git`, arquivo `pkg/catalog/toolhive/data/registry-upstream.json`.
-- `lab-kubernetes`: recursos MCP publicados no namespace `toolhive-mcp`, para refletir o estado GitOps local no catalogo.
+- `lab-kubernetes`: recursos MCP publicados no namespace `mcps`, para refletir o estado GitOps local no catalogo.
 
 Requisitos:
 
 - A senha do banco deve ser injetada via `THV_REGISTRY_DATABASE_PASSWORD` a partir de Secret Kubernetes gerenciado por ESO.
 - A configuracao do Registry Server nao deve conter senha em ConfigMap.
+- Cada `MCPServer` deve ser exportado individualmente para o Registry Server com as annotations:
+  - `toolhive.stacklok.dev/registry-export: "true"`;
+  - `toolhive.stacklok.dev/registry-title`;
+  - `toolhive.stacklok.dev/registry-url`;
+  - `toolhive.stacklok.dev/registry-description`.
+- Cada `VirtualMCPServer` de grupo tambem deve ser exportado para o Registry Server.
 - O `IngressRoute` do Registry Server deve usar TLS `platform-wildcard-tls`.
 - O secret TLS deve ser refletido para `toolhive-system`.
 - Autenticacao OAuth/OIDC no Registry Server deve ser fase futura, depois do MVP anonimo interno/Tailscale.
@@ -394,7 +435,7 @@ Requisitos:
 Requisitos MVP:
 
 - Logs do operator acessiveis via `kubectl -n toolhive-system logs`.
-- Logs dos workloads MCP acessiveis via `kubectl -n toolhive-mcp logs`.
+- Logs dos workloads MCP acessiveis via `kubectl -n mcps logs`.
 - Metricas Prometheus habilitadas quando suportadas oficialmente.
 - `ServiceMonitor` criado se o chart ou workloads expuserem endpoint Prometheus estavel.
 - Telemetria OpenTelemetry deve ser considerada para VTraces se o operator suportar exportador OTLP sem componentes adicionais.
@@ -435,7 +476,7 @@ Fase futura:
 Requisitos:
 
 - Nao executar workloads privilegiados no MVP.
-- Habilitar Pod Security Admission `baseline` no namespace `toolhive-mcp`, mantendo `restricted` em audit/warn.
+- Habilitar Pod Security Admission `baseline` no namespace `mcps`, mantendo `restricted` em audit/warn.
 - ToolHive v0.29.1 gera o proxy runner sem todos os campos exigidos por PSA `restricted`; migrar `enforce` para `restricted` deve ser reavaliado quando o upstream permitir configurar `seccompProfile` e `capabilities.drop` no proxy runner gerado.
 - Usar imagens fixadas por tag.
 - Preferir imagens upstream oficiais ou mantidas por projetos confiaveis.
@@ -477,11 +518,13 @@ Requisitos:
 - Namespace `toolhive-system` existe e contem o ToolHive Operator `Ready`.
 - Registry Server existe no namespace `toolhive-system` e responde no Service `toolhive-registry-server:8080`.
 - CRDs `toolhive.stacklok.dev` existem e sao reconhecidas pela API Kubernetes.
-- Namespace `toolhive-mcp` existe com labels/annotations de Pod Security definidas.
+- Namespace `mcps` existe com labels/annotations de Pod Security definidas.
 - Operator esta limitado ao namespace escolhido, se modo `namespace` for adotado.
 - Pelo menos um `MCPServer` ou `MCPRemoteProxy` de baixo risco e reconciliado com sucesso.
 - Pelo menos um endpoint MCP e validado por cliente compativel.
-- `https://mcp.platform.the-lab.zone/mcp` e validado em cliente MCP.
+- Cada MCPServer inicial tem `IngressRoute` no padrao `<mcp-name>.mcp.the-lab.zone`.
+- O grupo inicial `lab-tools` tem `IngressRoute` em `https://lab-tools.group.mcp.the-lab.zone/mcp`.
+- O Registry Server lista entradas individuais para os MCPServers exportados e para o VirtualMCPServer de grupo.
 - `https://toolhive.platform.the-lab.zone` aponta para o Registry Server.
 - Nenhum secret aparece em texto puro no Git.
 - `make template` renderiza o chart sem erro.
@@ -502,9 +545,7 @@ Requisitos:
 - Criar `app.yaml`.
 - Criar `Chart.yaml` com dependencias oficiais.
 - Criar `values.yaml` minimo para operator e CRDs.
-- Criar namespace `toolhive-mcp`.
 - Configurar RBAC/allowed namespaces.
-- Configurar `mcp.platform.the-lab.zone` para o Virtual MCP Server.
 - Configurar Registry Server em `toolhive.platform.the-lab.zone`.
 - Configurar ExternalSecret da senha PostgreSQL do Registry Server.
 - Validar renderizacao Helm.
@@ -523,7 +564,12 @@ Requisitos:
 
 ### Fase 3 - Primeiro MCP server
 
+- Criar `clusters/platform/wave-6-ai/mcps/`.
+- Criar namespace `mcps`.
+- Configurar wildcard DNS e TLS para `*.mcp.the-lab.zone` e `*.group.mcp.the-lab.zone`.
 - Adicionar MCP server de baixo risco.
+- Criar IngressRoute individual no padrao `<mcp-name>.mcp.the-lab.zone`.
+- Exportar MCPServer individual para o Registry Server via annotations.
 - Validar reconciliacao do operator.
 - Validar endpoint interno.
 - Validar consumo por cliente MCP.
@@ -533,7 +579,9 @@ Requisitos:
 
 - Adicionar `MCPGroup`.
 - Adicionar `MCPToolConfig`.
-- Criar `VirtualMCPServer`.
+- Criar `VirtualMCPServer` por grupo.
+- Criar IngressRoute de grupo no padrao `<group-name>.group.mcp.the-lab.zone`.
+- Exportar `VirtualMCPServer` de grupo para o Registry Server via annotations.
 - Habilitar Registry Server com fontes upstream e Kubernetes.
 - Expor via Traefik se autenticacao estiver definida.
 - Validar cliente externo autorizado.

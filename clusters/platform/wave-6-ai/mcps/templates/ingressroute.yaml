@@ -1,0 +1,50 @@
+{{- if .Values.ingress.enabled }}
+{{- range $key, $server := .Values.servers }}
+{{- if $server.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $server.name }}
+  namespace: {{ $.Values.namespace.name }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{ $server.name }}.{{ $.Values.ingress.mcpDomain }}`)
+      kind: Rule
+      middlewares:
+        - name: {{ $.Values.ingress.headersMiddlewareName }}
+          namespace: {{ $.Values.ingress.headersMiddlewareNamespace }}
+      services:
+        - name: {{ printf "mcp-%s-proxy" $server.name }}
+          port: {{ default $.Values.defaults.proxyPort $server.proxyPort }}
+  tls:
+    secretName: {{ $.Values.ingress.tlsSecretName }}
+{{- end }}
+{{- end }}
+{{- range $key, $group := .Values.groups }}
+{{- if and $group.enabled $group.virtual.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $group.name }}
+  namespace: {{ $.Values.namespace.name }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{ $group.name }}.{{ $.Values.ingress.groupDomain }}`)
+      kind: Rule
+      middlewares:
+        - name: {{ $.Values.ingress.headersMiddlewareName }}
+          namespace: {{ $.Values.ingress.headersMiddlewareNamespace }}
+      services:
+        - name: {{ printf "vmcp-%s" $group.name }}
+          port: 4483
+  tls:
+    secretName: {{ $.Values.ingress.tlsSecretName }}
+{{- end }}
+{{- end }}
+{{- end }}
